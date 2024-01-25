@@ -245,9 +245,32 @@ app.get('/prof/update', async (req, res) => {
   var data = JSON.parse(req.query.data);
   for (var i in data) {
     accountData[name][i] = data[i];
-    //if (data[i] === null) delete accountData[name][i];
+    if (data[i] === null) delete accountData[name][i];
   }
   fs.writeFile('./accounts.json', JSON.stringify(accountData,1,2),'utf8',function(){});
+});
+app.get('/prof/delete', async (req, res) => {
+  var cred = md5(req.query.cred);
+  var uid = md5(req.query.uid);
+  var tok = req.query.tok;
+  // Check
+  var name = idCache[uid];
+  var name2 = authtokens[tok];
+  if (!name || !name2 || name != name2 || cred != accountData[name].credentials) {
+    renderImage("Error: Not authenticated", res);
+    return;
+  }
+  // Delete
+  delete accountData[name];
+  fs.writeFile('./accounts.json', JSON.stringify(accountData,1,2),'utf8',function(){});
+  for (var i in idCache) {
+    if (idCache[i] == name) delete idCache[i];
+  }
+  fs.writeFile('./cache.json', JSON.stringify(idCache,1,2),'utf8',function(){});
+  for (var i in authtokens) {
+    if (authtokens[i] == name) delete authtokens[i];
+  }
+  renderImage("Successfully deleted your account", res);
 });
 app.get('/prof/get/:name', async (req, res) => {
   var name = req.params.name;
