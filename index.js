@@ -192,7 +192,7 @@ app.get('/prof/signup', async (req, res) => {
   fs.writeFile('./cache.json', JSON.stringify(idCache,1,2),'utf8',function(){});
   giveToken(name,res);
 });
-app.get('/prof/login', async (req, res) => {
+app.get('/prof/signin', async (req, res) => {
   var name = req.query.name.toLowerCase();
   var cred = md5(req.query.cred);
   var uid = md5(req.query.uid);
