@@ -282,6 +282,9 @@ app.get('/prof/get/:name', async (req, res) => {
   }
   renderImage(JSON.stringify(data), res);
 });
+app.get('/prof/getall', async (req, res) => {
+  renderImage(JSON.stringify(accountData), res);
+});
 
 //
 
