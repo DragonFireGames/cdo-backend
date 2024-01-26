@@ -305,3 +305,17 @@ function randomId(len,alphabet) {
   }
   return str;
 }
+
+// Send file directly
+//*
+app.get('/:file', (req, res) => {
+  res.send(fs.readFileSync('./'+req.params.file));
+});
+/*/
+app.get('/accounts.json', async (req, res) => {
+  res.sendFile('./accounts.json');
+});
+app.get('/sessions.json', async (req, res) => {
+  res.sendFile('/sessions.json');
+});
+//*/
