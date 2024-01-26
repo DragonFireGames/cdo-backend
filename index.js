@@ -154,10 +154,10 @@ fs.readFile('./accounts.json', function read(err, data) {
   if (err) throw err;
   accountData = JSON.parse(data);
 });
-var idCache;
-fs.readFile('./cache.json', function read(err, data) {
+var sessionCache;
+fs.readFile('./sessions.json', function read(err, data) {
   if (err) throw err;
-  idCache = JSON.parse(data);
+  sessionCache = JSON.parse(data);
 });
 
 var authtokens = {};
@@ -188,8 +188,8 @@ app.get('/prof/signup', async (req, res) => {
     accountData[name][i] = data[i];
   }
   fs.writeFile('./accounts.json', JSON.stringify(accountData,1,2),'utf8',function(){});
-  idCache[uid] = name;
-  fs.writeFile('./cache.json', JSON.stringify(idCache,1,2),'utf8',function(){});
+  sessionCache[uid] = name;
+  fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
   giveToken(name,res);
 });
 app.get('/prof/signin', async (req, res) => {
@@ -204,13 +204,13 @@ app.get('/prof/signin', async (req, res) => {
     renderImage("Login Failed: Invalid credentials", res);
     return;
   }
-  idCache[uid] = name;
-  fs.writeFile('./cache.json', JSON.stringify(idCache,1,2),'utf8',function(){});
+  sessionCache[uid] = name;
+  fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
   giveToken(name,res);
 });
 app.get('/prof/checkin', async (req, res) => {
   var uid = md5(req.query.uid);
-  var name = idCache[uid];
+  var name = sessionCache[uid];
   if (!name) {
     renderImage("Failed: User ID not registered", res);
     return;
@@ -221,15 +221,15 @@ app.get('/prof/signout', async (req, res) => {
   var uid = md5(req.query.uid);
   var tok = req.query.tok;
   // Check
-  var name = idCache[uid];
+  var name = sessionCache[uid];
   var name2 = authtokens[tok];
   if (!name || !name2 || name != name2) {
     renderImage("Error: Not authenticated", res);
     return;
   }
   // Delete
-  delete idCache[uid];
-  fs.writeFile('./cache.json', JSON.stringify(idCache,1,2),'utf8',function(){});
+  delete sessionCache[uid];
+  fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
   delete authtokens[tok];
   renderImage("Successfully signed out", res);
 });
@@ -254,7 +254,7 @@ app.get('/prof/delete', async (req, res) => {
   var uid = md5(req.query.uid);
   var tok = req.query.tok;
   // Check
-  var name = idCache[uid];
+  var name = sessionCache[uid];
   var name2 = authtokens[tok];
   if (!name || !name2 || name != name2 || cred != accountData[name].credentials) {
     renderImage("Error: Not authenticated", res);
@@ -263,10 +263,10 @@ app.get('/prof/delete', async (req, res) => {
   // Delete
   delete accountData[name];
   fs.writeFile('./accounts.json', JSON.stringify(accountData,1,2),'utf8',function(){});
-  for (var i in idCache) {
-    if (idCache[i] == name) delete idCache[i];
+  for (var i in sessionCache) {
+    if (sessionCache[i] == name) delete sessionCache[i];
   }
-  fs.writeFile('./cache.json', JSON.stringify(idCache,1,2),'utf8',function(){});
+  fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
   for (var i in authtokens) {
     if (authtokens[i] == name) delete authtokens[i];
   }
@@ -305,4 +305,3 @@ function randomId(len,alphabet) {
   }
   return str;
 }
-
