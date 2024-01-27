@@ -30,6 +30,10 @@ app.get('/', (req, res) => {
   `);
 });
 
+app.get('/ping', async (req, res) => {
+  renderImage("Awake!", res);
+});
+
 app.get('/convert/:id', async (req, res) => {
   //let request = await fetch(`${(req.params.id.indexOf("//") > 0 ? req.params.id: master + req.params.id+'/main.json')}`);
   var request = await fetch(`${master + req.params.id}/main.json`);
