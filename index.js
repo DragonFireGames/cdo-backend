@@ -152,24 +152,11 @@ app.get('/youtube/info/:id', async (req, res) => {
 //MD5 Hash - Ron Rivest
 !function(){function j(r) {var o, e, n, f = [ -680876936, -389564586, 606105819, -1044525330, -176418897, 1200080426, -1473231341, -45705983, 1770035416, -1958414417, -42063, -1990404162, 1804603682, -40341101, -1502002290, 1236535329, -165796510, -1069501632, 643717713, -373897302, -701558691, 38016083, -660478335, -405537848, 568446438, -1019803690, -187363961, 1163531501, -1444681467, -51403784, 1735328473, -1926607734, -378558, -2022574463, 1839030562, -35309556, -1530992060, 1272893353, -155497632, -1094730640, 681279174, -358537222, -722521979, 76029189, -640364487, -421815835, 530742520, -995338651, -198630844, 1126891415, -1416354905, -57434055, 1700485571, -1894986606, -1051523, -2054922799, 1873313359, -30611744, -1560198380, 1309151649, -145523070, -1120210379, 718787259, -343485551 ], t = [ o = 1732584193, e = 4023233417, ~o, ~e ], c = [], a = unescape(encodeURI(r)) + "\u0080", d = a.length;for (r = --d / 4 + 2 | 15, c[--r] = 8 * d; ~d; ) c[d >> 2] |= a.charCodeAt(d) << 8 * d--;for (i = a = 0; i < r; i += 16){for (d = t; 64 > a; d = [ n = d[3], o + ((n = d[0] + [ o & e | ~o & n, n & o | ~n & e, o ^ e ^ n, e ^ (o | ~n) ][d = a >> 4] + f[a] + ~~c[i | 15 & [ a, 5 * a + 1, 3 * a + 5, 7 * a ][d]]) << (d = [ 7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21 ][4 * d + a++ % 4]) | n >>> -d), o, e ]) o = 0 | d[1], e = d[2];for (a = 4; a; ) t[--a] += d[a]}for (r = ""; 32 > a; ) r += (t[a >> 3] >> 4 * (1 ^ a++) & 15).toString(16);return r}(global.md5=j)}();
 
-
-// FPROF
-var accountData = {};
-var sessionCache = {};
-/*fs.readFile('./accounts.json', function read(err, data) {
-  if (err) throw err;
-  accountData = JSON.parse(data);
-});
-fs.readFile('./sessions.json', function read(err, data) {
-  if (err) throw err;
-  sessionCache = JSON.parse(data);
-});*/
-
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://dragonfire7z:"+process.env['MONGODB_PASSWORD']+"@cdo-backend.sredm6y.mongodb.net/?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
+const mongocl = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -177,24 +164,17 @@ const client = new MongoClient(uri, {
   }
 });
 
-function saveAccData() {
-  //fs.writeFile('./accounts.json', JSON.stringify(accountData,1,2),'utf8',function(){});
-}
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    await mongocl.connect();
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    await mongocl.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
     //
-    var accountColl = await client.db("cdo-backend").collection("accounts");
-    accountData = await accountColl.findOne({_id:0});
-    //
-    //const result = await accountColl.insertOne({_id:0});
-    //
-    saveAccData = async function() {
-      return await accountColl.replaceOne({_id:0},accountData);
+    for (var i = 0; i < APIList.length; i++) {
+      APIList[i].db = mongocl.db("cdo-api").collection(APIList[i].name);
+      APIList[i].ondbload();
     }
   } finally {
     // Ensures that the client will close when you finish/error
@@ -208,173 +188,36 @@ process.on('SIGINT', async function() {
   process.exit(0);
 });
 
-var authtokens = {};
-var admintokens = {};
-function giveToken(name,res) {
-  var tok = randomId(32);
-  authtokens[tok] = name;
-  var data = {
-    tok:tok,
-    name:name,
-    data:accountData[name]
+var APIList = []
+function createAPI(name) {
+  var obj = {};
+  obj.name = name;
+  obj.on = function(event, callback) {
+    app.get('/'+name+'/'+event, async (req, res) => {
+      var data = JSON.parse(req.query.data);
+      try {
+        var ret = await callback(data);
+      } catch (e) {
+        var ret = e;
+      }
+      return renderImage(JSON.stringify(ret), res);
+    });
+  }
+  obj.save = async function(id,data) {
+    var val = {};
+    val._id = id;
+    val.data = data;
+    return await obj.db.replaceOne({_id:id},val,{upsert:true});
   };
-  renderImage(JSON.stringify(data), res);
-}
-app.get('/prof/signup', async (req, res) => {
-  var name = req.query.name.replace(/[^\w\d_-]/g,"").toLowerCase();
-  var cred = md5(req.query.cred);
-  var uid = md5(req.query.uid);
-  if (accountData[name] !== undefined) {
-    renderImage("Signup Failed: Account already exists", res);
-    return;
-  }
-  accountData[name] = {
-    name: req.query.name,
-    credentials: cred,
+  obj.get = async function(id,def) {
+    var val = await obj.db.findOne({_id:id});
+    if (val === null) return def;
+    return val.data;
   };
-  var data = JSON.parse(req.query.data);
-  for (var i in data) {
-    accountData[name][i] = data[i];
-  }
-  saveAccData();
-  sessionCache[uid] = name;
-  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
-  giveToken(name,res);
-});
-app.get('/prof/signin', async (req, res) => {
-  var name = req.query.name.toLowerCase();
-  var cred = md5(req.query.cred);
-  var uid = md5(req.query.uid);
-  if (!accountData[name]) {
-    renderImage("Login Failed: Account nonexistant", res);
-    return;
-  }
-  if (accountData[name].credentials !== cred) {
-    renderImage("Login Failed: Invalid credentials", res);
-    return;
-  }
-  var data = JSON.parse(req.query.data);
-  for (var i in data) {
-    if (accountData[name][i]) continue;
-    accountData[name][i] = data[i];
-  }
-  saveAccData();
-  sessionCache[uid] = name;
-  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
-  giveToken(name,res);
-});
-app.get('/prof/checkin', async (req, res) => {
-  var uid = md5(req.query.uid);
-  var name = sessionCache[uid];
-  if (!name) {
-    renderImage("Failed: User ID not registered", res);
-    return;
-  }
-  giveToken(name,res);
-});
-app.get('/prof/signout', async (req, res) => {
-  var uid = md5(req.query.uid);
-  var tok = req.query.tok;
-  // Check
-  var name = sessionCache[uid];
-  var name2 = authtokens[tok];
-  if (!name || !name2 || name != name2) {
-    renderImage("Error: Not authenticated", res);
-    return;
-  }
-  // Delete
-  delete sessionCache[uid];
-  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
-  delete authtokens[tok];
-  delete admintokens[tok];
-  renderImage("Successfully signed out", res);
-});
-app.get('/prof/update', async (req, res) => {
-  var tok = req.query.tok;
-  // Check
-  var name = authtokens[tok];
-  if (!name) {
-    renderImage("Error: Not authenticated", res);
-    return;
-  }
-  // Update
-  updateProfile(name,req,res);
-});
-app.get('/prof/delete', async (req, res) => {
-  var cred = md5(req.query.cred);
-  var uid = md5(req.query.uid);
-  var tok = req.query.tok;
-  // Check
-  var name = sessionCache[uid];
-  var name2 = authtokens[tok];
-  if (!name || !name2 || name != name2 || cred != accountData[name].credentials) {
-    renderImage("Error: Not authenticated", res);
-    return;
-  }
-  // Delete
-  delete accountData[name];
-  saveAccData();
-  for (var i in sessionCache) {
-    if (sessionCache[i] == name) delete sessionCache[i];
-  }
-  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
-  for (var i in authtokens) {
-    if (authtokens[i] == name) delete authtokens[i];
-  }
-  renderImage("Successfully deleted your account", res);
-});
-app.get('/prof/get/:name', async (req, res) => {
-  var name = req.params.name;
-  // Check
-  var data = accountData[name];
-  if (!data) {
-    renderImage("Error: Nonexistent user", res);
-    return;
-  }
-  renderImage(JSON.stringify(data), res);
-});
-app.get('/prof/getall', async (req, res) => {
-  renderImage(JSON.stringify(accountData), res);
-});
-const adminpswd = md5(process.env['ADMIN_PASSWORD']);
-app.get('/prof/admin/elevate', async (req, res) => {
-  var tok = req.query.tok;
-  if (!authtokens[tok]) {
-    renderImage("Elevation Failed: No valid token", res);
-    return;
-  }
-  var cred = md5(req.query.cred);
-  if (cred != adminpswd) {
-    renderImage("Elevation Failed: Invalid credentials", res);
-    return;
-  }
-  admintokens[tok] = true;
-  renderImage("Successfully became admin", res);
-});
-app.get('/prof/admin/update', async (req, res) => {
-  var tok = req.query.tok;
-  if (!admintokens[tok]) {
-    renderImage("Error Failed: Not authenticated", res);
-    return;
-  }
-  var name = req.query.name;
-  if (!accountData[name]) {
-    renderImage("Error Failed: Account doesn't exist", res);
-    return;
-  }
-  updateProfile(name,req,res);
-});
-function updateProfile(name,req,res) {
-  var data = JSON.parse(req.query.data);
-  for (var i in data) {
-    accountData[name][i] = data[i];
-    if (data[i] === null) delete accountData[name][i];
-  }
-  saveAccData();
-  renderImage(JSON.stringify(accountData[name]), res);
+  obj.ondbload = function() {};
+  APIList.push(obj);
+  return obj;
 }
-//
-
 async function renderImage(file, res) {
   var code = await _jimp.textToCode(file);
   var img = await _jimp.epic_jimp(code);
@@ -393,17 +236,135 @@ function randomId(len,alphabet) {
   return str;
 }
 
-// Send file directly
-//*
-app.get('/:file', (req, res) => {
-  res.send(fs.readFileSync('./'+req.params.file));
+// FPROF
+var accountData = {};
+var sessionCache = {};
+var authtokens = {};
+var admintokens = {};
+function giveToken(name) {
+  var tok = randomId(32);
+  authtokens[tok] = name;
+  return {
+    tok:tok,
+    name:name,
+    data:accountData[name]
+  };
+}
+var profapi = createAPI("prof");
+profapi.ondbload = async ()=>{
+  accountData = await profapi.get(0,{});
+};
+async function saveAccData() {
+  return await profapi.save(0,accountData);
+}
+profapi.on('signup', async (data) => {
+  var name = data.name.replace(/[^\w\d_-]/g,"").toLowerCase();
+  var cred = md5(data.cred);
+  var uid = md5(data.uid);
+  if (accountData[name] !== undefined) throw "Signup Failed: Account already exists";
+  accountData[name] = {
+    name: data.name,
+    credentials: cred,
+  };
+  var def = data.data;
+  for (var i in def) {
+    accountData[name][i] = def[i];
+  }
+  saveAccData();
+  sessionCache[uid] = name;
+  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
+  return giveToken(name);
 });
-/*/
-app.get('/accounts.json', async (req, res) => {
-  res.sendFile('./accounts.json');
+profapi.on('signin', async (data) => {
+  var name = data.name.toLowerCase();
+  var cred = md5(data.cred);
+  var uid = md5(data.uid);
+  if (!accountData[name]) throw "Login Failed: Account doesn't exist";
+  if (accountData[name].credentials !== cred) throw "Login Failed: Invalid credentials";
+  var def = data.data;
+  for (var i in def) {
+    if (accountData[name][i]) continue;
+    accountData[name][i] = def[i];
+  }
+  saveAccData();
+  sessionCache[uid] = name;
+  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
+  return giveToken(name);
 });
-app.get('/sessions.json', async (req, res) => {
-  res.sendFile('/sessions.json');
+profapi.on('checkin', async (uid) => {
+  uid = md5(uid);
+  var name = sessionCache[uid];
+  if (!name) throw "Error: User ID not registered";
+  return giveToken(name);
 });
-//*/
+profapi.on('signout', async (data) => {
+  var uid = md5(data.uid);
+  var tok = data.tok;
+  // Check
+  var name = sessionCache[uid];
+  var name2 = authtokens[tok];
+  if (!name || !name2 || name != name2) throw "Error: Not authenticated";
+  // Delete
+  delete sessionCache[uid];
+  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
+  delete authtokens[tok];
+  delete admintokens[tok];
+  return "Successfully signed out";
+});
+profapi.on('update', async (data) => {
+  var tok = data.tok;
+  // Check
+  var name = data.name
+  var name2 = authtokens[tok];
+  if (!name || (name != name2 && !admintokens[tok])) return "Error: Not authenticated";
+  // Update
+  var update = JSON.parse(data.data);
+  for (var i in update) {
+    accountData[name][i] = update[i];
+    if (data[i] === null) delete accountData[name][i];
+  }
+  saveAccData();
+  return accountData[name];
+});
+profapi.on('delete', async (data) => {
+  var cred = md5(data.cred);
+  var uid = md5(data.uid);
+  var tok = data.tok;
+  // Check
+  var name = sessionCache[uid];
+  var name2 = authtokens[tok];
+  if (!name || !name2 || name != name2) throw "Error: Not authenticated";
+  if (cred != accountData[name].credentials) throw "Error: Invalid Credentials";
+  // Delete
+  delete accountData[name];
+  saveAccData();
+  for (var i in sessionCache) {
+    if (sessionCache[i] == name) delete sessionCache[i];
+  }
+  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
+  for (var i in authtokens) {
+    if (authtokens[i] == name) delete authtokens[i];
+  }
+  return "Successfully deleted your account";
+});
+profapi.on('get', async (name) => {
+  // Check
+  var data = accountData[name];
+  if (!data) throw "Error: Nonexistent user"
+  return data;
+});
+profapi.on('getall', async () => {
+  return accountData;
+});
+const adminpswd = md5(process.env['ADMIN_PASSWORD']);
+profapi.on('admin/elevate', async (data) => {
+  var tok = data.tok;
+  if (!authtokens[tok]) throw "Error: No valid token";
+  var cred = md5(data.cred);
+  if (cred != adminpswd) throw "Error: Invalid credentials";
+  admintokens[tok] = true;
+  return "Successfully became admin";
+});
+//
+
 
