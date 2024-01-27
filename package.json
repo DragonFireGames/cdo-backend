@@ -1,25 +1,27 @@
 {
+  "name": "codeorg",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@types/node": "^18.0.6",
     "cors": "^2.8.5",
-    "cross-fetch": "^3.1.5",
-    "dlurl": "^1.0.2",
-    "express": "^4.18.1",
-    "fluent-ffmpeg": "^2.1.2",
-    "form-data": "^4.0.0",
+    "cross-fetch": "^4.0.0",
+    "express": "^4.18.2",
     "get-audio-duration": "^4.0.1",
-    "get-pixels-frame-info-update": "^3.3.2",
     "gm": "^1.25.0",
-    "got": "^11.8.5",
-    "jimp": "^0.16.1",
+    "got": "^14.0.0",
+    "jimp": "^0.3.5",
     "jsmediatags": "^3.9.7",
-    "multi-integer-range": "^5.2.0",
-    "node-fetch": "^3.2.5",
+    "mongodb": "^6.3.0",
+    "node-fetch": "^3.2.6",
     "request": "^2.88.2",
-    "save-pixels-jpeg-js-upgrade": "^2.3.4-jpeg-js-upgrade.0",
-    "spotify-web-api-node": "^5.0.2",
-    "stream-chop": "^1.0.0",
-    "youtube-search-without-api-key": "^1.0.7",
     "ytdl-core": "^4.11.5"
   }
 }
