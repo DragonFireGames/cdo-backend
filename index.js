@@ -253,6 +253,12 @@ app.get('/prof/signin', async (req, res) => {
     renderImage("Login Failed: Invalid credentials", res);
     return;
   }
+  var data = JSON.parse(req.query.data);
+  for (var i in data) {
+    if (accountData[name][i]) continue;
+    accountData[name][i] = data[i];
+  }
+  saveAccData();
   sessionCache[uid] = name;
   //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
   giveToken(name,res);
