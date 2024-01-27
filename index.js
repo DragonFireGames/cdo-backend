@@ -224,7 +224,7 @@ app.get('/prof/signup', async (req, res) => {
   var name = req.query.name.replace(/[^\w\d_-]/g,"").toLowerCase();
   var cred = md5(req.query.cred);
   var uid = md5(req.query.uid);
-  if (accountData[name]) {
+  if (accountData[name] !== undefined) {
     renderImage("Signup Failed: Account already exists", res);
     return;
   }
