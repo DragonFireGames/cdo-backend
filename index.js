@@ -148,19 +148,64 @@ app.get('/youtube/info/:id', async (req, res) => {
 //MD5 Hash - Ron Rivest
 !function(){function j(r) {var o, e, n, f = [ -680876936, -389564586, 606105819, -1044525330, -176418897, 1200080426, -1473231341, -45705983, 1770035416, -1958414417, -42063, -1990404162, 1804603682, -40341101, -1502002290, 1236535329, -165796510, -1069501632, 643717713, -373897302, -701558691, 38016083, -660478335, -405537848, 568446438, -1019803690, -187363961, 1163531501, -1444681467, -51403784, 1735328473, -1926607734, -378558, -2022574463, 1839030562, -35309556, -1530992060, 1272893353, -155497632, -1094730640, 681279174, -358537222, -722521979, 76029189, -640364487, -421815835, 530742520, -995338651, -198630844, 1126891415, -1416354905, -57434055, 1700485571, -1894986606, -1051523, -2054922799, 1873313359, -30611744, -1560198380, 1309151649, -145523070, -1120210379, 718787259, -343485551 ], t = [ o = 1732584193, e = 4023233417, ~o, ~e ], c = [], a = unescape(encodeURI(r)) + "\u0080", d = a.length;for (r = --d / 4 + 2 | 15, c[--r] = 8 * d; ~d; ) c[d >> 2] |= a.charCodeAt(d) << 8 * d--;for (i = a = 0; i < r; i += 16){for (d = t; 64 > a; d = [ n = d[3], o + ((n = d[0] + [ o & e | ~o & n, n & o | ~n & e, o ^ e ^ n, e ^ (o | ~n) ][d = a >> 4] + f[a] + ~~c[i | 15 & [ a, 5 * a + 1, 3 * a + 5, 7 * a ][d]]) << (d = [ 7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21 ][4 * d + a++ % 4]) | n >>> -d), o, e ]) o = 0 | d[1], e = d[2];for (a = 4; a; ) t[--a] += d[a]}for (r = ""; 32 > a; ) r += (t[a >> 3] >> 4 * (1 ^ a++) & 15).toString(16);return r}(global.md5=j)}();
 
+
 // FPROF
-var accountData;
-fs.readFile('./accounts.json', function read(err, data) {
+var accountData = {};
+var sessionCache = {};
+/*fs.readFile('./accounts.json', function read(err, data) {
   if (err) throw err;
   accountData = JSON.parse(data);
 });
-var sessionCache;
 fs.readFile('./sessions.json', function read(err, data) {
   if (err) throw err;
   sessionCache = JSON.parse(data);
+});*/
+
+const { MongoClient, ServerApiVersion } = require('mongodb');
+const uri = "mongodb+srv://dragonfire7z:"+process.env['MONGODB_PASSWORD']+"@cdo-backend.sredm6y.mongodb.net/?retryWrites=true&w=majority";
+
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
+
+function saveAccData() {
+  //fs.writeFile('./accounts.json', JSON.stringify(accountData,1,2),'utf8',function(){});
+}
+async function run() {
+  try {
+    // Connect the client to the server	(optional starting in v4.7)
+    await client.connect();
+    // Send a ping to confirm a successful connection
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    //
+    var accountColl = await client.db("cdo-backend").collection("accounts");
+    accountData = await accountColl.findOne({_id:0});
+    //
+    //const result = await accountColl.insertOne({_id:0});
+    //
+    saveAccData = async function() {
+      return await accountColl.replaceOne({_id:0},accountData);
+    }
+  } finally {
+    // Ensures that the client will close when you finish/error
+    //await client.close();
+  }
+}
+run().catch(console.dir);
+process.on('SIGINT', async function() {
+  console.log("Ending");
+  await client.close();
+  process.exit(0);
 });
 
 var authtokens = {};
+var admintokens = {};
 function giveToken(name,res) {
   var tok = randomId(32);
   authtokens[tok] = name;
@@ -187,9 +232,9 @@ app.get('/prof/signup', async (req, res) => {
   for (var i in data) {
     accountData[name][i] = data[i];
   }
-  fs.writeFile('./accounts.json', JSON.stringify(accountData,1,2),'utf8',function(){});
+  saveAccData();
   sessionCache[uid] = name;
-  fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
+  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
   giveToken(name,res);
 });
 app.get('/prof/signin', async (req, res) => {
@@ -205,7 +250,7 @@ app.get('/prof/signin', async (req, res) => {
     return;
   }
   sessionCache[uid] = name;
-  fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
+  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
   giveToken(name,res);
 });
 app.get('/prof/checkin', async (req, res) => {
@@ -229,8 +274,9 @@ app.get('/prof/signout', async (req, res) => {
   }
   // Delete
   delete sessionCache[uid];
-  fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
+  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
   delete authtokens[tok];
+  delete admintokens[tok];
   renderImage("Successfully signed out", res);
 });
 app.get('/prof/update', async (req, res) => {
@@ -242,12 +288,7 @@ app.get('/prof/update', async (req, res) => {
     return;
   }
   // Update
-  var data = JSON.parse(req.query.data);
-  for (var i in data) {
-    accountData[name][i] = data[i];
-    if (data[i] === null) delete accountData[name][i];
-  }
-  fs.writeFile('./accounts.json', JSON.stringify(accountData,1,2),'utf8',function(){});
+  updateProfile(name,req,res);
 });
 app.get('/prof/delete', async (req, res) => {
   var cred = md5(req.query.cred);
@@ -262,11 +303,11 @@ app.get('/prof/delete', async (req, res) => {
   }
   // Delete
   delete accountData[name];
-  fs.writeFile('./accounts.json', JSON.stringify(accountData,1,2),'utf8',function(){});
+  saveAccData();
   for (var i in sessionCache) {
     if (sessionCache[i] == name) delete sessionCache[i];
   }
-  fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
+  //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
   for (var i in authtokens) {
     if (authtokens[i] == name) delete authtokens[i];
   }
@@ -285,7 +326,43 @@ app.get('/prof/get/:name', async (req, res) => {
 app.get('/prof/getall', async (req, res) => {
   renderImage(JSON.stringify(accountData), res);
 });
-
+const adminpswd = md5(process.env['ADMIN_PASSWORD']);
+app.get('/prof/admin/elevate', async (req, res) => {
+  var tok = req.query.tok;
+  if (!authtokens[tok]) {
+    renderImage("Elevation Failed: No valid token", res);
+    return;
+  }
+  var cred = md5(req.query.cred);
+  if (cred != adminpswd) {
+    renderImage("Elevation Failed: Invalid credentials", res);
+    return;
+  }
+  admintokens[tok] = true;
+  renderImage("Successfully became admin", res);
+});
+app.get('/prof/admin/update', async (req, res) => {
+  var tok = req.query.tok;
+  if (!admintokens[tok]) {
+    renderImage("Error Failed: Not authenticated", res);
+    return;
+  }
+  var name = req.query.name;
+  if (!accountData[name]) {
+    renderImage("Error Failed: Account doesn't exist", res);
+    return;
+  }
+  updateProfile(name,req,res);
+});
+function updateProfile(name,req,res) {
+  var data = JSON.parse(req.query.data);
+  for (var i in data) {
+    accountData[name][i] = data[i];
+    if (data[i] === null) delete accountData[name][i];
+  }
+  saveAccData();
+  renderImage(JSON.stringify(accountData[name]), res);
+}
 //
 
 async function renderImage(file, res) {
@@ -319,3 +396,4 @@ app.get('/sessions.json', async (req, res) => {
   res.sendFile('/sessions.json');
 });
 //*/
+
