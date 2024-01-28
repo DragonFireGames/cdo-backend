@@ -194,8 +194,8 @@ function createAPI(name) {
   obj.name = name;
   obj.on = function(event, callback) {
     app.get('/'+name+'/'+event, async (req, res) => {
-      var data = JSON.parse(req.query.data);
       try {
+        var data = JSON.parse(req.query.data);
         var ret = await callback(data);
       } catch (e) {
         var ret = e;
