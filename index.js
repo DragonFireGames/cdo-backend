@@ -276,8 +276,8 @@ profapi.on('signup', async (data) => {
     credentials: cred,
     avatar: "default",
     bio: "",
-    friends: [],
-    requests: [],
+    friends: {},
+    requests: {},
     coins: 0
   };
   var def = data.data;
@@ -350,7 +350,7 @@ profapi.on('friend', async (data) => {
   var acc = accountData[name];
   var myacc = accountData[myname];
   if (!acc || !myacc) throw "Error: Nonexistent user";
-  if (myacc.requests[name])  delete myacc.requests[name];
+  if (myacc.requests[name]) delete myacc.requests[name];
   else acc.requests[myname] = true;
   myacc.friends[name] = true;
   saveAccData();
