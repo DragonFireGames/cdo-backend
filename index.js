@@ -277,7 +277,8 @@ profapi.on('signup', async (data) => {
     avatar: "default",
     bio: "",
     friends: [],
-    pending: [],
+    requests: [],
+    coins: 0
   };
   var def = data.data;
   for (var i in def) {
@@ -341,6 +342,20 @@ profapi.on('update', async (data) => {
   saveAccData();
   return publicAccData[name];
 });
+profapi.on('friend', async (data) => {
+  // Check
+  var myname = authtokens[data.tok];
+  if (!myname) return "Error: Not authenticated";
+  var name = data.name;
+  var acc = accountData[name];
+  var myacc = accountData[myname];
+  if (!acc || !myacc) throw "Error: Nonexistent user";
+  if (!myacc.requests[name])  delete myacc.requests[name];
+  else acc.requests[myname] = true;
+  myacc.friends[name] = true;
+  saveAccData();
+  return "Successfully added friend";
+});
 profapi.on('delete', async (data) => {
   var uid = md5(data.uid);
   var tok = data.tok;
@@ -381,5 +396,3 @@ profapi.on('admin/elevate', async (data) => {
   return "Successfully became admin";
 });
 //
-
-
