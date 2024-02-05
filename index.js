@@ -198,7 +198,7 @@ function createAPI(name) {
   obj.on = function(event, callback) {
     app.get('/'+name+'/'+event, async (req, res) => {
       try {
-        var data = JSON.parse(req.query.data);
+        var data = JSON.parse(req.query.data||"{}");
         var ret = await callback(data);
       } catch (e) {
         var ret = e;
@@ -257,12 +257,16 @@ function giveToken(name) {
 var profapi = createAPI("prof");
 profapi.ondbload = async ()=>{
   accountData = await profapi.get(0,{});
+  updatePublicAccData();
 };
-async function saveAccData() {
+function updatePublicAccData() {
   publicAccData = JSON.parse(JSON.stringify(accountData));
   for (var i in publicAccData) {
     delete publicAccData[i].credentials;
   }
+}
+async function saveAccData() {
+  updatePublicAccData();
   return await profapi.save(0,accountData);
 }
 profapi.on('signup', async (data) => {
