@@ -333,11 +333,11 @@ profapi.on('signout', async (data) => {
 profapi.on('update', async (data) => {
   var tok = data.tok;
   // Check
-  var name = data.name
+  var name = data.name;
   var name2 = authtokens[tok];
   if (!name || (name != name2 && !admintokens[tok])) return "Error: Not authenticated";
   // Update
-  var update = JSON.parse(data.data);
+  var update = data.data;
   for (var i in update) {
     if (i == "cred") continue;
     accountData[name][i] = update[i];
