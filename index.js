@@ -276,7 +276,8 @@ profapi.on('signup', async (data) => {
   var uid = md5(data.uid);
   if (accountData[name] !== undefined) throw "Signup Failed: Account already exists";
   accountData[name] = {
-    name: data.name,
+    name: name,
+    displayname: data.name,
     credentials: cred,
     avatar: "default",
     bio: "",
@@ -285,6 +286,7 @@ profapi.on('signup', async (data) => {
     coins: 0
   };
   var def = data.data;
+  console.log(def);
   for (var i in def) {
     accountData[name][i] = def[i];
   }
@@ -338,8 +340,12 @@ profapi.on('update', async (data) => {
   if (!name || (name != name2 && !admintokens[tok])) return "Error: Not authenticated";
   // Update
   var update = data.data;
+  var blocked = {
+    name:1,
+    credentials:1,
+  }
   for (var i in update) {
-    if (i == "cred") continue;
+    if (blocked[i]) continue;
     accountData[name][i] = update[i];
     if (data[i] === null) delete accountData[name][i];
   }
