@@ -19,6 +19,12 @@ const master = `https://studio.code.org/v3/sources/`;
 app.listen(3000);
 
 app.get('/', (req, res) => {
+  res.status(200).send(`<script>
+    location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+  </script>`); // rickroll bc funny
+});
+
+app.get('/docs', (req,res) => {
   res.status(200).send(`
   What are you doing here?<br>
   To convert a JSON file from CDO use /convert/{ID}<br>
