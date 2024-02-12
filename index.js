@@ -289,7 +289,8 @@ profapi.on('signup', async (data) => {
     bio: "",
     friends: {},
     requests: {},
-    coins: 0
+    coins: 0,
+    joinedAt: Date.now(),
   };
   var def = data.data;
   console.log(def);
@@ -313,6 +314,7 @@ profapi.on('signin', async (data) => {
     if (accountData[name][i]) continue;
     accountData[name][i] = def[i];
   }
+  if (!accountData[name].joinedAt) accountData[name].joinedAt = Date.now();
   saveAccData();
   sessionCache[uid] = name;
   //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
