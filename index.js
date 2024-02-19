@@ -20,7 +20,7 @@ app.listen(3000);
 
 app.get('/', (req, res) => {
   res.status(200).send(`<script>
-    __cpLocation.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+    location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
   </script>`); // rickroll bc funny
 });
 
@@ -294,7 +294,6 @@ profapi.on('signup', async (data) => {
     public: {},
   };
   var def = data.data;
-  console.log(def);
   for (var i in def) {
     if (i == "public") continue;
     accountData[name][i] = def[i];
@@ -315,7 +314,6 @@ profapi.on('signin', async (data) => {
   var credvalid = await bcrypt.compare(data.cred, accountData[name].credentials);
   if (!credvalid) throw "Login Failed: Invalid credentials";
   var def = data.data;
-  console.log(def);
   for (var i in def) {
     if (i == "public") continue;
     if (accountData[name][i]) continue;
@@ -325,7 +323,6 @@ profapi.on('signin', async (data) => {
     if (accountData[name].public[i]) continue;
     accountData[name].public[i] = def.public[i];
   }
-  if (!accountData[name].joinedAt) accountData[name].joinedAt = Date.now();
   saveAccData();
   sessionCache[uid] = name;
   //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
