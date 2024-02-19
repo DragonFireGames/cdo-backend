@@ -417,8 +417,10 @@ profapi.on('admin/elevate', async (data) => {
 
 var dbapi = createAPI("db");
 dbapi.on('set', async (data) => {
-  return await dbapi.save(data.key,data.value);
+  var id = data.name+":"+data.key;
+  return await dbapi.save(id,data.value);
 });
 dbapi.on('get', async (data) => {
-  return await dbapi.get(data.key,data.default||undefined);
+  var id = data.name+":"+data.key;
+  return await dbapi.get(id,data.default||undefined);
 });
