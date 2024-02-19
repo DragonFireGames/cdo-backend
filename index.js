@@ -296,7 +296,11 @@ profapi.on('signup', async (data) => {
   var def = data.data;
   console.log(def);
   for (var i in def) {
+    if (i == "public") continue;
     accountData[name][i] = def[i];
+  }
+  if (def.public) for (var i in def.public) {
+    accountData[name].public[i] = def.public[i];
   }
   saveAccData();
   sessionCache[uid] = name;
@@ -311,7 +315,9 @@ profapi.on('signin', async (data) => {
   var credvalid = await bcrypt.compare(data.cred, accountData[name].credentials);
   if (!credvalid) throw "Login Failed: Invalid credentials";
   var def = data.data;
+  console.log(def);
   for (var i in def) {
+    if (i == "public") continue;
     if (accountData[name][i]) continue;
     accountData[name][i] = def[i];
   }
