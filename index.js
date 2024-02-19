@@ -288,11 +288,10 @@ profapi.on('signup', async (data) => {
     avatar: "default",
     bio: "",
     friends: {},
+    requests: {},
     coins: 0,
     joinedAt: Date.now(),
-    public: {
-      requests: {},
-    },
+    public: {},
   };
   var def = data.data;
   console.log(def);
