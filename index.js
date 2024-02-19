@@ -288,9 +288,11 @@ profapi.on('signup', async (data) => {
     avatar: "default",
     bio: "",
     friends: {},
-    requests: {},
     coins: 0,
     joinedAt: Date.now(),
+    public: {
+      requests: {},
+    },
   };
   var def = data.data;
   console.log(def);
@@ -313,6 +315,10 @@ profapi.on('signin', async (data) => {
   for (var i in def) {
     if (accountData[name][i]) continue;
     accountData[name][i] = def[i];
+  }
+  if (def.public) for (var i in def.public) {
+    if (accountData[name].public[i]) continue;
+    accountData[name].public[i] = def.public[i];
   }
   if (!accountData[name].joinedAt) accountData[name].joinedAt = Date.now();
   saveAccData();
@@ -356,6 +362,24 @@ profapi.on('update', async (data) => {
     if (blocked[i]) continue;
     accountData[name][i] = update[i];
     if (data[i] === null) delete accountData[name][i];
+  }
+  if (update.public) for (var i in update.public) {
+    accountData[name].public[i] = update.public[i];
+    if (update.public[i] === null) delete accountData[name].public[i];
+  }
+  saveAccData();
+  return publicAccData[name];
+});
+profapi.on('update/public', async (data) => {
+  var tok = data.tok;
+  // Check
+  var name = data.name;
+  if (!authtokens[tok]) return "Error: Not authenticated";
+  // Update
+  var update = data.data;
+  for (var i in update) {
+    accountData[name].public[i] = update[i];
+    if (update[i] === null) delete accountData[name].public[i];
   }
   saveAccData();
   return publicAccData[name];
