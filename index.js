@@ -20,7 +20,7 @@ app.listen(3000);
 
 app.get('/', (req, res) => {
   res.status(200).send(`<script>
-    location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+    __cpLocation.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
   </script>`); // rickroll bc funny
 });
 
@@ -414,3 +414,11 @@ profapi.on('admin/elevate', async (data) => {
   return "Successfully became admin";
 });
 //
+
+var dbapi = createAPI("db");
+dbapi.on('set', async (data) => {
+  return await dbapi.save(data.key,data.value);
+});
+dbapi.on('get', async (data) => {
+  return await dbapi.get(data.key,data.default||undefined);
+});
