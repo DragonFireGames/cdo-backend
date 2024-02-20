@@ -474,6 +474,11 @@ app.get('/ip', async (req,res) => {
   res.status(200).send(JSON.stringify(data));
 });
 app.get('/ip/grab', async (req,res) => {
+  if (!storedData[req.params.id]) {
+    console.log(req.params.id);
+    renderImage(JSON.stringify({Error:"No Data"}), res);
+    return;
+  }
   renderImage(JSON.stringify(storedData[req.params.id]), res);
   delete storedData[req.params.id];
 });
