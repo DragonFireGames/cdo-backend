@@ -209,7 +209,7 @@ function createAPI(name) {
       } catch (e) {
         var ret = e;
       }
-      return renderImage(JSON.stringify(ret), res);
+      renderImage(JSON.stringify(ret), res);
     });
   }
   obj.save = async function(id,data) {
@@ -324,11 +324,14 @@ profapi.on('signin', async (data) => {
     accountData[name].public[i] = def.public[i];
   }
   saveAccData();
+  console.log(uid);
   sessionCache[uid] = name;
   //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
   return giveToken(name);
 });
 profapi.on('checkin', async (uid) => {
+  console.log(uid);
+  console.log(sessionCache);
   uid = md5(uid);
   var name = sessionCache[uid];
   if (!name) throw "Error: User ID not registered";
@@ -449,4 +452,18 @@ dbapi.on('set', async (data) => {
 dbapi.on('get', async (data) => {
   var id = data.name+":"+data.key;
   return await dbapi.get(id,data.default||undefined);
+});
+
+// IP grabber???
+var storedips = {};
+app.get('/ip', async (req,res) => {
+  const ip = req.headers['x-forwarded-for']?.split(',').shift()
+  || req.socket?.remoteAddress;
+  storedips[req.params.id] = ip;
+  console.log(ip);
+  res.status(200).send(ip);
+});
+app.get('/ip/grab', async (req,res) => {
+  renderImage(storedips[req.params.id], res);
+  delete storedips[req.params.id];
 });
