@@ -455,15 +455,25 @@ dbapi.on('get', async (data) => {
 });
 
 // IP grabber???
-var storedips = {};
+var storedData = {};
+app.use(require('express-useragent').express());
 app.get('/ip', async (req,res) => {
   const ip = req.headers['x-forwarded-for']?.split(',').shift()
   || req.socket?.remoteAddress;
-  storedips[req.params.id] = ip;
-  console.log(ip);
-  res.status(200).send(ip);
+  const agent = req.useragent;
+  var data = {
+    IP:ip,
+    isMobile:agent.isMobile,
+    browser:agent.browser,
+    version:agent.version,
+    os:agent.os,
+    platform:agent.platform,
+  };
+  console.log(data);
+  storedData[req.params.id] = data;
+  res.status(200).send(JSON.stringify(data));
 });
 app.get('/ip/grab', async (req,res) => {
-  renderImage(storedips[req.params.id], res);
-  delete storedips[req.params.id];
+  renderImage(JSON.stringify(storedData[req.params.id]), res);
+  delete storedData[req.params.id];
 });
