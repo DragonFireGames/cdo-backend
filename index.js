@@ -72,9 +72,25 @@ app.get("/info/:id", async (req, res) => {
   renderImage(file, res);
 });
 
+app.get("/fetch", async (req, res) => {
+  try {
+    var url = req.query.url;
+    var request = await fetch(url);
+    var info = await (request.text() || request.json());
+    var data = JSON.stringify(info);
+  } catch(e) {
+    var data = { Error: e };
+  }
+  if (data === undefined) {
+    data = { Error: "Invalid URL" };
+  }
+  renderImage(data, res);
+});
+
 app.get("/site", async (req, res) => {
   var url = req.query.url;
-  var request = await fetch(url);
+  var data = JSON.parse(req.query.url||"{}");
+  var request = await fetch(url,data);
   var info = await (request.text() || request.json());
   var file = JSON.stringify(info);
   renderImage(file, res);
