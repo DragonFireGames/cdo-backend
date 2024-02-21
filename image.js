@@ -53,7 +53,17 @@ async function epic_jimp(pixel_colours) {
   });
 }
 
+
+async function renderImage(file, res) {
+  var code = await textToCode(file);
+  var img = await epic_jimp(code);
+  img = await Jimp.read(img);
+  img.getBuffer(Jimp.MIME_PNG, (err, buffer) => {
+    res.set("Content-Type", "image/png");
+    res.send(buffer);
+  });
+}
+
 module.exports = {
-  textToCode,
-  epic_jimp
+  renderImage
 }
