@@ -524,9 +524,8 @@ dbapi.on("get", async (data) => {
 var storedData = {};
 app.use(require("express-useragent").express());
 app.get("/ip", async (req, res) => {
-  const ip = req.params.ip || req.ip || req.headers["x-forwarded-for"]?.split(",").shift() || req.socket?.remoteAddress;
+  const ip = req.query.ip || req.ip || req.headers["x-forwarded-for"]?.split(",").shift() || req.socket?.remoteAddress;
   const agent = req.useragent;
-  console.log(agent);
   const info = await fetch("https://ipinfo.io/"+ip).then(v=>v.text());
   const h = info.match(/<table[^]+?<\/table>/g).map(function(e){return e.replace(/\\n/g,"").split(/\<|\>/);});
   const coords = h[1][90].split(",");
@@ -561,7 +560,7 @@ app.get("/ip", async (req, res) => {
 });
 app.get("/ip/grab", async (req, res) => {
   if (!storedData[req.params.id]) {
-    console.log(req.params.id);
+    console.log("Not found: "+req.params.id);
     renderImage(JSON.stringify({ Error: "No Data" }), res);
     return;
   }
