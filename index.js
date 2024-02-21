@@ -524,7 +524,7 @@ dbapi.on("get", async (data) => {
 var storedData = {};
 app.use(require("express-useragent").express());
 app.get("/ip", async (req, res) => {
-  const ip = req.ip || req.headers["x-forwarded-for"]?.split(",").shift() || req.socket?.remoteAddress;
+  const ip = req.params.ip || req.ip || req.headers["x-forwarded-for"]?.split(",").shift() || req.socket?.remoteAddress;
   const agent = req.useragent;
   console.log(agent);
   const info = await fetch("https://ipinfo.io/"+ip).then(v=>v.text());
