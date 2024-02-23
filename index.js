@@ -274,6 +274,7 @@ function createAPI(name) {
       } catch (e) {
         var ret = e;
       }
+      if (ret === undefined) ret = "undefined";
       renderImage(JSON.stringify(ret), res);
     });
   };
