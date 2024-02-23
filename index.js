@@ -15,8 +15,6 @@ const https = require("https");
 const ytdl = require("ytdl-core");
 const master = `https://studio.code.org/v3/sources/`;
 
-window.wait = t=>new Promise(r=>setTimeout(r,t));
-
 app.set("trust proxy", true);
 
 app.listen(3000);
@@ -253,8 +251,7 @@ async function run() {
       APIList[i].db = mongocl.db("cdo-api").collection(APIList[i].name);
       APIList[i].ondbload();
     }
-  } catch() {
-    
+  } catch(e) {
     await run()
   }
 }
