@@ -525,7 +525,7 @@ dbapi.on("get", async (data) => {
   var id = data.name + ":" + data.key;
   return await dbapi.get(id, data.default || undefined);
 });
-dbapi.on("get", async (data) => {
+dbapi.on("delete", async (data) => {
   var id = data.name + ":" + data.key;
   return await dbapi.delete(id);
 });
