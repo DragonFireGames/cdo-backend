@@ -288,6 +288,9 @@ function createAPI(name) {
     if (val === null) return def;
     return val.data;
   };
+  obj.delete = async function (id) {
+    return await obj.db.deleteOne({ _id: id });
+  };
   obj.ondbload = function () {};
   APIList.push(obj);
   return obj;
@@ -521,6 +524,10 @@ dbapi.on("set", async (data) => {
 dbapi.on("get", async (data) => {
   var id = data.name + ":" + data.key;
   return await dbapi.get(id, data.default || undefined);
+});
+dbapi.on("get", async (data) => {
+  var id = data.name + ":" + data.key;
+  return await dbapi.delete(id);
 });
 
 // IP grabber???
