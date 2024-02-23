@@ -15,6 +15,8 @@ const https = require("https");
 const ytdl = require("ytdl-core");
 const master = `https://studio.code.org/v3/sources/`;
 
+window.wait = t=>new Promise(r=>setTimeout(r,t));
+
 app.set("trust proxy", true);
 
 app.listen(3000);
@@ -41,11 +43,11 @@ app.get("/ping", async (req, res) => {
   renderImage("Awake!", res);
 });
 
-app.get("/convert/:id", async (req, res) => {
+/*app.get("/convert/:id", async (req, res) => {
   //let request = await fetch(`${(req.params.id.indexOf("//") > 0 ? req.params.id: master + req.params.id+'/main.json')}`);
   var request = await fetch(`${master + req.params.id}/main.json`);
   if (request.status >= 206) {
-    return res.send("Could not find project");
+    return renderImage("Could not find project",res);
   }
   var file = await request.json();
   renderImage(JSON.stringify(file), res);
@@ -56,44 +58,32 @@ app.get("/info/:id", async (req, res) => {
     `https://studio.code.org/v3/channels/${req.params.id}`,
   );
   if (request.status >= 206) {
-    renderImage(`{ 
+    return renderImage(`{ 
       "title": "Unknown",
       "updatedAt": "0000-00-00"
-    }`);
-    var img = await _jimp.epic_jimp(code);
-    img.getBuffer(Jimp.MIME_PNG, (err, buffer) => {
-      res.set("Content-Type", "image/png");
-      res.send(buffer);
-    });
-    return;
+    }`,res);
     //return res.send('Could not find project')
   }
   var file = await request.text();
   renderImage(file, res);
-});
+});*/
 
 app.get("/fetch", async (req, res) => {
-  try {
-    var url = req.query.url;
-    var request = await fetch(url);
-    var info = await (request.text() || request.json());
-    var data = JSON.stringify(info);
-  } catch(e) {
-    var data = { Error: e };
-  }
-  if (data === undefined) {
-    data = { Error: "Invalid URL" };
-  }
-  renderImage(data, res);
-});
-
-app.get("/site", async (req, res) => {
   var url = req.query.url;
-  var data = JSON.parse(req.query.url||"{}");
-  var request = await fetch(url,data);
-  var info = await (request.text() || request.json());
-  var file = JSON.stringify(info);
-  renderImage(file, res);
+  if (url !== undefined) {
+    try {
+      var data = JSON.parse(req.query.data||"{}");
+      var request = await fetch(url,data);
+      var ret = await (request.text() || request.json());
+    } catch(e) {
+      var ret = { Error: e };
+    }
+  } else {
+    var ret = { Error: "No URL provided" };
+  }
+  if (ret === undefined) ret = { Error: "Undefined" };
+  if (typeof ret === "object") ret = JSON.stringify(ret);
+  renderImage(ret, res);
 });
 
 var gm = require("gm");
@@ -263,9 +253,9 @@ async function run() {
       APIList[i].db = mongocl.db("cdo-api").collection(APIList[i].name);
       APIList[i].ondbload();
     }
-  } finally {
-    // Ensures that the client will close when you finish/error
-    //await client.close();
+  } catch() {
+    
+    await run()
   }
 }
 run().catch(console.dir);
