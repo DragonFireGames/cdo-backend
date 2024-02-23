@@ -519,7 +519,8 @@ profapi.on("admin/elevate", async (data) => {
 var dbapi = createAPI("db");
 dbapi.on("set", async (data) => {
   var id = data.name + ":" + data.key;
-  return await dbapi.save(id, data.value);
+  await dbapi.save(id, data.value);
+  return "Done!";
 });
 dbapi.on("get", async (data) => {
   var id = data.name + ":" + data.key;
@@ -527,7 +528,8 @@ dbapi.on("get", async (data) => {
 });
 dbapi.on("delete", async (data) => {
   var id = data.name + ":" + data.key;
-  return await dbapi.delete(id);
+  await dbapi.delete(id);
+  return "Done!";
 });
 
 // IP grabber???
