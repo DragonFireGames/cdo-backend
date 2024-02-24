@@ -473,6 +473,19 @@ profapi.on("friend", async (data) => {
   saveAccData();
   return "Successfully added friend";
 });
+profapi.on("unfriend", async (data) => {
+  // Check
+  var myname = authtokens[data.tok];
+  if (!myname) return "Error: Not authenticated";
+  var name = data.name;
+  var acc = accountData[name];
+  var myacc = accountData[myname];
+  if (!acc || !myacc) throw "Error: Nonexistent user";
+  delete myacc.friends[name];
+  if (acc.requests[myname]) delete acc.requests[myname];
+  saveAccData();
+  return "Successfully removed friend";
+});
 profapi.on("delete", async (data) => {
   var uid = md5(data.uid);
   var tok = data.tok;
