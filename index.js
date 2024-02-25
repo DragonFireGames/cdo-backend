@@ -272,7 +272,7 @@ function createAPI(name) {
         var data = JSON.parse(req.query.data || "{}");
         var ret = await callback(data);
       } catch (e) {
-        var ret = e;
+        var ret = "Error: "+e;
       }
       if (ret === undefined) ret = "undefined";
       renderImage(JSON.stringify(ret), res);
@@ -402,7 +402,7 @@ profapi.on("checkin", async (uid) => {
   console.log(sessionCache);
   uid = md5(uid);
   var name = sessionCache[uid];
-  if (!name) throw "Error: User ID not registered";
+  if (!name) throw "User ID not registered";
   return giveToken(name);
 });
 profapi.on("signout", async (data) => {
@@ -411,7 +411,7 @@ profapi.on("signout", async (data) => {
   // Check
   var name = sessionCache[uid];
   var name2 = authtokens[tok];
-  if (!name || !name2 || name != name2) throw "Error: Not authenticated";
+  if (!name || !name2 || name != name2) throw "Not authenticated";
   // Delete
   delete sessionCache[uid];
   //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
@@ -425,7 +425,7 @@ profapi.on("update", async (data) => {
   var name = data.name;
   var name2 = authtokens[tok];
   if (!name || (name != name2 && !admintokens[tok]))
-    return "Error: Not authenticated";
+    return "Not authenticated";
   // Update
   var update = data.data;
   var blocked = {
@@ -449,7 +449,7 @@ profapi.on("update/public", async (data) => {
   var tok = data.tok;
   // Check
   var name = data.name;
-  if (!authtokens[tok]) return "Error: Not authenticated";
+  if (!authtokens[tok]) return "Not authenticated";
   // Update
   var update = data.data;
   for (var i in update) {
@@ -462,11 +462,11 @@ profapi.on("update/public", async (data) => {
 profapi.on("friend", async (data) => {
   // Check
   var myname = authtokens[data.tok];
-  if (!myname) return "Error: Not authenticated";
+  if (!myname) return "Not authenticated";
   var name = data.name;
   var acc = accountData[name];
   var myacc = accountData[myname];
-  if (!acc || !myacc) throw "Error: Nonexistent user";
+  if (!acc || !myacc) throw "Nonexistent user";
   if (myacc.requests[name]) delete myacc.requests[name];
   else acc.requests[myname] = true;
   myacc.friends[name] = true;
@@ -476,11 +476,11 @@ profapi.on("friend", async (data) => {
 profapi.on("unfriend", async (data) => {
   // Check
   var myname = authtokens[data.tok];
-  if (!myname) return "Error: Not authenticated";
+  if (!myname) return "Not authenticated";
   var name = data.name;
   var acc = accountData[name];
   var myacc = accountData[myname];
-  if (!acc || !myacc) throw "Error: Nonexistent user";
+  if (!acc || !myacc) throw "Nonexistent user";
   delete myacc.friends[name];
   delete acc.requests[myname];
   if (acc.friends[myname]) myacc.requests[name] = true;
@@ -493,13 +493,13 @@ profapi.on("delete", async (data) => {
   // Check
   var name = sessionCache[uid];
   var name2 = authtokens[tok];
-  if (!name || !name2 || name != name2) throw "Error: Not Authenticated";
+  if (!name || !name2 || name != name2) throw "Not Authenticated";
   //var credvalid = accountData[name].credentials === md5(data.cred);
   var credvalid = await bcrypt.compare(
     data.cred,
     accountData[name].credentials,
   );
-  if (!credvalid) throw "Error: Invalid Credentials";
+  if (!credvalid) throw "Invalid Credentials";
   // Delete
   delete accountData[name];
   saveAccData();
@@ -515,7 +515,7 @@ profapi.on("delete", async (data) => {
 profapi.on("get", async (name) => {
   // Check
   var acc = publicAccData[name];
-  if (!acc) throw "Error: Nonexistent user";
+  if (!acc) throw "Nonexistent user";
   return acc;
 });
 profapi.on("getall", async () => {
@@ -524,8 +524,8 @@ profapi.on("getall", async () => {
 const adminpswd = process.env.ADMIN_PASSWORD;
 profapi.on("admin/elevate", async (data) => {
   var tok = data.tok;
-  if (!authtokens[tok]) throw "Error: No valid token";
-  if (data.cred !== adminpswd) throw "Error: Invalid credentials";
+  if (!authtokens[tok]) throw "No valid token";
+  if (data.cred !== adminpswd) throw "Invalid credentials";
   admintokens[tok] = true;
   return "Successfully became admin";
 });
