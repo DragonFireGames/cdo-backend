@@ -481,11 +481,9 @@ profapi.on("unfriend", async (data) => {
   var acc = accountData[name];
   var myacc = accountData[myname];
   if (!acc || !myacc) throw "Error: Nonexistent user";
-  if (myacc.friends[name]) {
-    delete myacc.friends[name];
-    myacc.requests[name] = true;
-  }
-  if (acc.requests[myname]) delete acc.requests[myname];
+  delete myacc.friends[name];
+  delete acc.requests[myname];
+  if (acc.friends[myname]) myacc.requests[name] = true;
   saveAccData();
   return "Successfully removed friend";
 });
