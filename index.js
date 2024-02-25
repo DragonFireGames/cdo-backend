@@ -502,6 +502,10 @@ profapi.on("delete", async (data) => {
   if (!credvalid) throw "Invalid Credentials";
   // Delete
   delete accountData[name];
+  for (var i in accountData) {
+    delete accountData[i].friends[name];
+    delete accountData[i].requests[name];
+  }
   saveAccData();
   for (var i in sessionCache) {
     if (sessionCache[i] == name) delete sessionCache[i];
@@ -515,7 +519,7 @@ profapi.on("delete", async (data) => {
 profapi.on("get", async (name) => {
   // Check
   var acc = publicAccData[name];
-  if (!acc) throw "Nonexistent user";
+  if (!acc) throw "Nonexistent or deleted user";
   return acc;
 });
 profapi.on("getall", async () => {
