@@ -69,17 +69,31 @@ app.get("/info/:id", async (req, res) => {
 app.get("/fetch", async (req, res) => {
   var url = req.query.url;
   if (url !== undefined) {
+    var ret;
     try {
       var data = JSON.parse(req.query.data||"{}");
       var request = await fetch(url,data);
-      var ret = await (request.text() || request.json());
+      if (request.status >= 206) throw "Could not fetch; Error Code: "+request.status;
+      var blob = await request.blob();
+      if (blob.type.includes("image/") || req.query.proxy) {
+        var buffer = await blob.arrayBuffer();
+        buffer = Buffer.from(buffer);
+        res.set("Content-Type", blob.type);
+        res.send(buffer);
+        return;
+      }
+      ret = await blob.text();
+      if (blob.type === "application/json") {
+        ret = JSON.parse(ret);
+      }
     } catch(e) {
-      var ret = { Error: e };
+      ret = { Error: e };
     }
   } else {
-    var ret = { Error: "No URL provided" };
+    ret = { Error: "No URL provided" };
   }
-  if (ret === undefined) ret = { Error: "Undefined" };
+    console.log(ret);
+  if (ret === undefined) ret = { Error: "undefined" };
   if (typeof ret === "object") ret = JSON.stringify(ret);
   renderImage(ret, res);
 });
@@ -339,6 +353,7 @@ async function saveAccData() {
 }
 profapi.on("signup", async (data) => {
   var name = data.name.replace(/[^\w\d_-]/g, "").toLowerCase();
+  if (name.length < 3) throw "Signup Failed: Name too short (less than 3 chars)";
   //var cred = md5(data.cred);
   var cred = await bcrypt.hash(data.cred, saltRounds);
   var uid = md5(data.uid);
@@ -560,6 +575,7 @@ app.get("/ip", async (req, res) => {
   const info = await fetch("https://ipinfo.io/"+ip).then(v=>v.text());
   const h = info.match(/<table[^]+?<\/table>/g).map(function(e){return e.replace(/\\n/g,"").split(/\<|\>/);});
   const coords = h[1][90].split(",");
+  const language = req.headers["accept-language"]?.split(",").shift() || "en-US";
   var data = {
     IP: ip,
     isMobile: agent.isMobile,
@@ -584,6 +600,7 @@ app.get("/ip", async (req, res) => {
     timezone: h[1][78],
     longitude: Number(coords[0]),
     latitude: Number(coords[1]),
+    language: language
   };
   console.log(data);
   storedData[req.params.id] = data;
