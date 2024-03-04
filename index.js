@@ -95,6 +95,11 @@ app.get("/fetch", async (req, res) => {
     console.log(ret);
   if (ret === undefined) ret = { Error: "undefined" };
   if (typeof ret === "object") ret = JSON.stringify(ret);
+  if (req.query.proxy) {
+    res.set("Content-Type", "text/plain");
+    res.send(ret);
+    return;
+  }
   renderImage(ret, res);
 });
 
