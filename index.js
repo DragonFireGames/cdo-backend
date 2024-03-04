@@ -75,7 +75,7 @@ app.get("/fetch", async (req, res) => {
       var request = await fetch(url,data);
       if (request.status >= 206) throw "Could not fetch; Error Code: "+request.status;
       var blob = await request.blob();
-      if (blob.type.includes("image/") || req.query.proxy) {
+      if (blob.type.includes("image/") || req.query.test) {
         var buffer = await blob.arrayBuffer();
         buffer = Buffer.from(buffer);
         res.set("Content-Type", blob.type);
@@ -95,48 +95,12 @@ app.get("/fetch", async (req, res) => {
     console.log(ret);
   if (ret === undefined) ret = { Error: "undefined" };
   if (typeof ret === "object") ret = JSON.stringify(ret);
-  if (req.query.proxy) {
+  if (req.query.test) {
     res.set("Content-Type", "text/plain");
     res.send(ret);
     return;
   }
   renderImage(ret, res);
-});
-
-app.get("/proxy", async (req, res) => {
-  var url = req.query.url;
-  try {
-    var data = JSON.parse(req.query.data||"{}");
-    var request = await fetch(url,data);
-    if (request.status >= 206) throw "Error "+request.status;
-    var blob = await request.blob();
-    if (blob.type == "text/html") {
-      var text = await blob.text();
-      console.log(text);
-      var matches = url.match(/^(?:https?:\/\/)?(?:[^@\/\n]+@)?([^:\/?\n]+)/)[1];
-      var domain = matches[0]+matches[1];
-      text = text.replace(/((?:src|href)\s*=\s*")/g,`$1https://cdo-backend.onrender.com/proxy?url=`+domain);
-      text = text.replaceAll(domain+"http","http");
-      text = text.replace("<head>",`<head><script>
-if (!window._fetch) window.__fetch = window.fetch;
-window.fetch = async function(){
-  console.log.apply(null,arguments);
-  return await window.__fetch.apply(this,arguments);
-}; 
-</script>`);
-      console.log(text);
-      res.set("Content-Type", "text/html");
-      res.send(text);
-      return;
-    }
-    var buffer = await blob.arrayBuffer();
-    buffer = Buffer.from(buffer);
-    res.set("Content-Type", blob.type);
-    res.send(buffer);
-  } catch(e) {
-    res.set("Content-Type", "application/json");
-    res.send(JSON.stringify(e));
-  }
 });
 
 var gm = require("gm");
