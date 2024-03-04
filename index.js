@@ -103,6 +103,37 @@ app.get("/fetch", async (req, res) => {
   renderImage(ret, res);
 });
 
+app.get("/proxy", async (req, res) => {
+  var url = req.query.url;
+  try {
+	var data = JSON.parse(req.query.data||"{}");
+	var request = await fetch(url,data);
+	if (request.status >= 206) throw "Error "+request.status;
+	var blob = await request.blob();
+	if (blob.type == "text/html") {
+		var text = await blob.text();
+		var matches = url.match(/^(?:https?:\/\/)?(?:[^@\/\n]+@)?([^:\/?\n]+)/)[1];
+		var domain = matches[0]+matches[1];
+		text = text.replace(/((?:src|href)\s*=\s*")/g,`$1https://cdo-backend.onrender.com/proxy?url=`+domain);
+		text = text.replaceAll(domain+"http","http");
+		text = text.replace("<head>",`<head><script>
+if (!window._fetch) window.__fetch = window.fetch;
+window.fetch = async function(){
+  console.log.apply(null,arguments);
+  return await window.__fetch.apply(this,arguments);
+}; 
+</script>`);
+	}
+	var buffer = await blob.arrayBuffer();
+	buffer = Buffer.from(buffer);
+	res.set("Content-Type", blob.type);
+	res.send(buffer);
+  } catch(e) {
+    res.set("Content-Type", "application/json");
+	res.send(JSON.stringify(e));
+  }
+});
+
 var gm = require("gm");
 var request = require("request");
 app.get("/gif", async (req, res) => {
