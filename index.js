@@ -92,7 +92,7 @@ app.get("/fetch", async (req, res) => {
   } else {
     ret = { Error: "No URL provided" };
   }
-    console.log(ret);
+  console.log(ret);
   if (ret === undefined) ret = { Error: "undefined" };
   if (typeof ret === "object") ret = JSON.stringify(ret);
   if (req.query.test) {
