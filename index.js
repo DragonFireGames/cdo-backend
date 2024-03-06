@@ -92,11 +92,11 @@ app.get("/fetch", async (req, res) => {
   } else {
     ret = { Error: "No URL provided" };
   }
-  console.log(ret);
+  //console.log(ret);
   if (ret === undefined) ret = { Error: "undefined" };
   if (typeof ret === "object") ret = JSON.stringify(ret);
   if (req.query.test) {
-    res.set("Content-Type", "text/plain");
+    res.set("Content-Type", "application/json");
     res.send(ret);
     return;
   }
@@ -294,6 +294,11 @@ function createAPI(name) {
         var ret = "Error: "+e;
       }
       if (ret === undefined) ret = "undefined";
+      if (req.query.test) {
+        res.set("Content-Type", "text/plain");
+        res.send(ret);
+        return;
+      }
       renderImage(JSON.stringify(ret), res);
     });
   };
@@ -575,48 +580,57 @@ dbapi.on("delete", async (data) => {
 var storedData = {};
 app.use(require("express-useragent").express());
 app.get("/ip", async (req, res) => {
-  const ip = req.query.ip || req.ip || req.headers["x-forwarded-for"]?.split(",").shift() || req.socket?.remoteAddress;
-  const agent = req.useragent;
-  const info = await fetch("https://ipinfo.io/"+ip).then(v=>v.text());
-  const h = info.match(/<table[^]+?<\/table>/g).map(function(e){return e.replace(/\\n/g,"").split(/\<|\>/);});
-  const coords = h[1][90].split(",");
-  const language = req.headers["accept-language"]?.split(",").shift() || "en-US";
-  var data = {
-    IP: ip,
-    isMobile: agent.isMobile,
-    browser: agent.browser,
-    version: agent.version,
-    os: agent.os,
-    platform: agent.platform,
-    //agent: agent.source,
-    ASN: h[0][18],
-    hostname: h[0][36],
-    //range: h[0][54],
-    company: h[0][72],
-    hosted_domains: Number(h[0][88]),
-    VPN: !(h[0][110].includes("False")),
-    anycast: !(h[0][132].includes("False")),
-    ASNtype: h[0][148],
-    abuse_contact: h[0][166],
-    city: h[1][10],
-    state: h[1][22],
-    country: h[1][40],
-    postal: h[1][54],
-    timezone: h[1][78],
-    longitude: Number(coords[0]),
-    latitude: Number(coords[1]),
-    language: language
-  };
-  console.log(data);
+  try {
+    const ip = req.query.ip || req.ip || req.headers["x-forwarded-for"]?.split(",").shift() || req.socket?.remoteAddress;
+    const agent = req.useragent;
+    const info = await fetch("https://ipinfo.io/"+ip).then(v=>v.text());
+    const h = info.match(/<table[^]+?<\/table>/g).map(function(e){return e.replace(/\\n/g,"").split(/\<|\>/);});
+    const coords = h[1][90].split(",");
+    const language = req.headers["accept-language"]?.split(",").shift() || "en-US";
+    var data = {
+      IP: ip,
+      isMobile: agent.isMobile,
+      browser: agent.browser,
+      version: agent.version,
+      os: agent.os,
+      platform: agent.platform,
+      //agent: agent.source,
+      ASN: h[0][18],
+      hostname: h[0][36],
+      //range: h[0][54],
+      company: h[0][72],
+      hosted_domains: Number(h[0][88]),
+      VPN: !(h[0][110].includes("False")),
+      anycast: !(h[0][132].includes("False")),
+      ASNtype: h[0][148],
+      abuse_contact: h[0][166],
+      city: h[1][10],
+      state: h[1][22],
+      country: h[1][40],
+      postal: h[1][54],
+      timezone: h[1][78],
+      longitude: Number(coords[0]),
+      latitude: Number(coords[1]),
+      language: language
+    };
+  } catch(e) {
+    var data = e;
+  }
   storedData[req.params.id] = data;
   res.status(200).send(JSON.stringify(data));
 });
 app.get("/ip/grab", async (req, res) => {
-  if (!storedData[req.params.id]) {
+  var data = storedData[req.params.id];
+  if (!data) {
     console.log("Not found: "+req.params.id);
     renderImage(JSON.stringify({ Error: "No Data" }), res);
     return;
   }
-  renderImage(JSON.stringify(storedData[req.params.id]), res);
   delete storedData[req.params.id];
+  if (req.query.test) {
+    res.set("Content-Type", "application/json");
+    res.send(data);
+    return;
+  }
+  renderImage(JSON.stringify(data), res);
 });
