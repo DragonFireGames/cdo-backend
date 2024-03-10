@@ -397,7 +397,6 @@ profapi.on("signup", async (data) => {
 });
 profapi.on("signin", async (data) => {
   var name = data.name.toLowerCase();
-  var uid = md5(data.uid);
   if (!accountData[name]) throw "Login Failed: Account doesn't exist";
   //var credvalid = accountData[name].credentials === md5(data.cred);
   var credvalid = await bcrypt.compare(
@@ -417,14 +416,12 @@ profapi.on("signin", async (data) => {
       accountData[name].public[i] = def.public[i];
     }
   saveAccData();
-  console.log(uid);
+  var uid = md5(data.uid);
   sessionCache[uid] = name;
   //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
   return giveToken(name);
 });
 profapi.on("checkin", async (uid) => {
-  console.log(uid);
-  console.log(sessionCache);
   uid = md5(uid);
   var name = sessionCache[uid];
   if (!name) throw "User ID not registered";
@@ -433,10 +430,8 @@ profapi.on("checkin", async (uid) => {
 profapi.on("referauth", async (data) => {
   var name = authtokens[data.tok];
   if (!name) throw "Token invalid";
-  sessionCache[data.uid] = name;
-  console.log(data.uid);
-  console.log(data.tok);
-  console.log(sessionCache);
+  var uid = md5(data.uid);
+  sessionCache[uid] = name;
   return {
     tok: data.tok,
     name: name,
