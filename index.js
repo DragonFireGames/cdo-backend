@@ -434,6 +434,9 @@ profapi.on("referauth", async (data) => {
   var name = authtokens[data.tok];
   if (!name) throw "Token invalid";
   sessionCache[data.uid] = name;
+  console.log(data.uid);
+  console.log(data.tok);
+  console.log(sessionCache);
   return {
     tok: data.tok,
     name: name,
