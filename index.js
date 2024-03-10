@@ -21,7 +21,7 @@ app.listen(3000);
 
 app.get("/", (req, res) => {
   res.status(200).send(`<script>
-    location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+    __cpLocation.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
   </script>`); // rickroll bc funny
 });
 
@@ -429,6 +429,16 @@ profapi.on("checkin", async (uid) => {
   var name = sessionCache[uid];
   if (!name) throw "User ID not registered";
   return giveToken(name);
+});
+profapi.on("referauth", async (data) => {
+  var name = authtokens[data.tok];
+  if (!name) throw "Token invalid";
+  sessionCache[data.uid] = name;
+  return {
+    tok: data.tok,
+    name: name,
+    data: publicAccData[name],
+  };
 });
 profapi.on("signout", async (data) => {
   var uid = md5(data.uid);
