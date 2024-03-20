@@ -624,6 +624,7 @@ app.get("/ip", async (req, res) => {
   } catch(e) {
     var data = e;
   }
+  console.log(data);
   storedData[req.params.id] = data;
   res.status(200).send(JSON.stringify(data));
 });
