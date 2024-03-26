@@ -643,3 +643,24 @@ app.get("/ip/grab", async (req, res) => {
   }
   renderImage(JSON.stringify(data), res);
 });
+
+// Sensitive image detection
+app.get("/isnsfw", async (req, res) => {
+  const fetch = require('node-fetch');
+  const url = 'https://purelabs-sensitive-image-detection-v1.p.rapidapi.com/?url='+encodeURIComponent(req.params.url);
+  const options = {
+    method: 'GET',
+    headers: {
+      'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+      'X-RapidAPI-Host': 'purelabs-sensitive-image-detection-v1.p.rapidapi.com'
+    }
+  };
+  try {
+  	const response = await fetch(url, options);
+  	const result = await response.text();
+  	renderImage(result, res);
+  } catch (error) {
+    if (typeof error == 'object') JSON.stringify(error);
+  	renderImage(error, res);
+  }
+});
