@@ -625,17 +625,17 @@ app.get("/ip", async (req, res) => {
     var data = e;
   }
   console.log(data);
-  storedData[req.params.id] = data;
+  storedData[req.query.id] = data;
   res.status(200).send(JSON.stringify(data));
 });
 app.get("/ip/grab", async (req, res) => {
-  var data = storedData[req.params.id];
+  var data = storedData[req.query.id];
   if (!data) {
-    console.log("Not found: "+req.params.id);
+    console.log("Not found: "+req.query.id);
     renderImage(JSON.stringify({ Error: "No Data" }), res);
     return;
   }
-  delete storedData[req.params.id];
+  delete storedData[req.query.id];
   if (req.query.test) {
     res.set("Content-Type", "application/json");
     res.send(data);
@@ -646,8 +646,8 @@ app.get("/ip/grab", async (req, res) => {
 
 // Sensitive image detection
 app.get("/isnsfw", async (req, res) => {
-  if (!req.params.url) return renderImage(JSON.stringify({ Error: "No image" }));
-  var url = 'https://purelabs-sensitive-image-detection-v1.p.rapidapi.com/?url='+encodeURIComponent(req.params.url);
+  if (!req.query.url) return renderImage(JSON.stringify({ Error: "No image" }));
+  var url = 'https://purelabs-sensitive-image-detection-v1.p.rapidapi.com/?url='+encodeURIComponent(req.query.url);
   var options = {
     method: 'GET',
     headers: {
