@@ -657,6 +657,7 @@ app.get("/isnsfw", async (req, res) => {
   };
   var result;
   try {
+    console.log(url,options);
   	var response = await fetch(url, options);
   	result = await response.text();
   } catch (error) {
