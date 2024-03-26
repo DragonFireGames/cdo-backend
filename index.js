@@ -691,7 +691,7 @@ app.get("/isnsfw", async (req, res) => {
   }
   if (req.query.test) {
     res.set("Content-Type", "application/json");
-    res.send(data);
+    res.send(result);
     return;
   }
   renderImage(result, res);
