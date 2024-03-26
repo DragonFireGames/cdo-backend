@@ -37,11 +37,31 @@ app.get("/docs", (req, res) => {
   `);
 });
 
+/*
+function endpoint(name,callback) {
+  app.get(name, async (req, res) => {
+    try {
+      var ret = await callback(req);
+    } catch (e) {
+      var ret = {Error:e};
+    }
+    if (ret === undefined) ret = "undefined";
+    if (req.query.test) {
+      res.set("Content-Type", "text/plain");
+      res.send(ret);
+      return;
+    }
+    renderImage(JSON.stringify(ret), res);
+  });
+}
+*/
+
 app.get("/ping", async (req, res) => {
   renderImage("Awake!", res);
 });
 
-/*app.get("/convert/:id", async (req, res) => {
+/*
+app.get("/convert/:id", async (req, res) => {
   //let request = await fetch(`${(req.params.id.indexOf("//") > 0 ? req.params.id: master + req.params.id+'/main.json')}`);
   var request = await fetch(`${master + req.params.id}/main.json`);
   if (request.status >= 206) {
@@ -64,7 +84,8 @@ app.get("/info/:id", async (req, res) => {
   }
   var file = await request.text();
   renderImage(file, res);
-});*/
+});
+*/
 
 app.get("/fetch", async (req, res) => {
   var url = req.query.url;
@@ -647,12 +668,16 @@ app.get("/ip/grab", async (req, res) => {
 // Sensitive image detection
 app.get("/isnsfw", async (req, res) => {
   if (!req.query.url) return renderImage(JSON.stringify({ Error: "No image" }));
-  var url = 'https://purelabs-sensitive-image-detection-v1.p.rapidapi.com/?url='+encodeURIComponent(req.query.url);
-  var options = {
-    method: 'GET',
+  const url = 'https://nsfw-images-detection-and-classification.p.rapidapi.com/adult-content';
+  const options = {
+    method: 'POST',
     headers: {
+      'content-type': 'application/json',
       'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
-      'X-RapidAPI-Host': 'purelabs-sensitive-image-detection-v1.p.rapidapi.com'
+      'X-RapidAPI-Host': 'nsfw-images-detection-and-classification.p.rapidapi.com'
+    },
+    body: {
+      url: req.query.url
     }
   };
   var result;
