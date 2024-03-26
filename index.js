@@ -676,9 +676,9 @@ app.get("/isnsfw", async (req, res) => {
       'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
       'X-RapidAPI-Host': 'nsfw-images-detection-and-classification.p.rapidapi.com'
     },
-    body: {
+    body: JSON.stringify({
       url: req.query.url
-    }
+    })
   };
   var result;
   try {
