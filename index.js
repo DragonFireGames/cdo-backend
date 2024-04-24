@@ -894,7 +894,7 @@ app.get("/unzip", async function(req, res) {
   var path = "cache/"+id+".7z";
   var dir = "cache/"+id;
   await fsp.writeFile(path,buf);
-  await fsp.mkdir(path);
+  //await fsp.mkdir(dir);
   //await unzip(path,dir);
   var data = {};
   data.id = id;
