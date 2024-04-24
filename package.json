@@ -1,0 +1,27 @@
+{
+  "name": "cdo-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "7zip-min": "^1.4.4",
+    "audio-decode": "^2.2.0",
+    "audiobuffer-to-blob": "^1.0.2",
+    "bcrypt": "^5.1.1",
+    "cross-fetch": "^4.0.0",
+    "express": "^4.19.2",
+    "express-useragent": "^1.0.15",
+    "gm": "^1.25.0",
+    "jimp": "^0.22.12",
+    "jsmediatags": "^3.9.7",
+    "mongodb": "^6.5.0",
+    "request": "^2.88.2",
+    "ytdl-core": "^4.11.5"
+  }
+}
