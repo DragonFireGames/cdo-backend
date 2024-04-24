@@ -873,7 +873,7 @@ function unzip(path,dir) {
 }
 async function recursiveDir(dir) {
   var list = [];
-  console.log(dir)l
+  console.log(dir);
   var files = fsp.readdir(dir);
   for (var name of files) {
     console.log(name);
