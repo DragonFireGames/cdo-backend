@@ -873,9 +873,12 @@ function unzip(path,dir) {
 }
 async function recursiveDir(dir) {
   var list = [];
+  console.log(dir)l
   var files = fsp.readdir(dir);
   for (var name of files) {
+    console.log(name);
     var stat = await fsp.lstat(dir+"/"+name);
+    console.log(stat.isDirectory());
     if (stat.isDirectory()) {
       recursiveDir(dir+"/"+name,callback);
     } else {
@@ -894,7 +897,7 @@ app.get("/unzip", async function(req, res) {
   var path = "cache/"+id+".7z";
   var dir = "cache/"+id;
   await fsp.writeFile(path,buf);
-  //await fsp.mkdir(dir);
+  await fsp.mkdir(dir);
   //await unzip(path,dir);
   var data = {};
   data.id = id;
