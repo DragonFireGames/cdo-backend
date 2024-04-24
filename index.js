@@ -888,7 +888,7 @@ app.get("/unzip", async function(req, res) {
   var url = req.query.url;
   if (!url) return;
   var blob = await fetch(url).then(e=>e.blob());
-  var buf = blob.arrayBuffer();
+  var buf = await blob.arrayBuffer();
   var id = randomId(8);
   var path = "cache/"+id+".7z";
   var dir = "cache/"+id;
