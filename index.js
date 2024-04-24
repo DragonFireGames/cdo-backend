@@ -889,6 +889,7 @@ app.get("/unzip", async function(req, res) {
   if (!url) return;
   var blob = await fetch(url).then(e=>e.blob());
   var buf = await blob.arrayBuffer();
+  buf = Buffer.from(buf);
   var id = randomId(8);
   var path = "cache/"+id+".7z";
   var dir = "cache/"+id;
