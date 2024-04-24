@@ -2,6 +2,7 @@
 // Heavily modified by DragonFireGames
 
 const fs = require("fs");
+const fsp = fs.promises;
 const express = require("express");
 const { renderImage } = require("./image");
 const app = express();
