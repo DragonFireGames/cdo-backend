@@ -859,8 +859,6 @@ app.get("/ai/*", async function aiModel(req, res) {
   });
 });
 
-
-
 const _7z = require('7zip-min');
 function unzip(path,dir) {
   return new Promise(function (res,rej) {
@@ -901,6 +899,7 @@ app.get("/unzip", async function(req, res) {
   data.dir = dir;
   data.origin = req.protocol+"://"+req.get('host')+"/";
   data.files = recursiveDir(dir);
+  console.log(data);
   if (req.query.test) {
     res.set("Content-Type", "application/json");
     res.send(data);
