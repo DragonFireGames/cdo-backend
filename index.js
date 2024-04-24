@@ -890,7 +890,7 @@ app.get("/unzip", async function(req, res) {
   var blob = await fetch(url).then(e=>e.blob());
   var buf = await blob.arrayBuffer();
   buf = Buffer.from(buf);
-  var id = randomId(8);
+  var id = Math.floor(Math.random()*1e12);
   var path = "cache/"+id+".7z";
   var dir = "cache/"+id;
   await fsp.writeFile(path,buf);
