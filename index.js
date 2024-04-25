@@ -870,16 +870,16 @@ function unzip(path,dir) {
     }); 
   })
 }
-async function recursiveDir(dir) {
+async function recursiveDir(dir,prev) {
   var list = [];
   var files = await fsp.readdir(dir);
   for (var name of files) {
     var stat = await fsp.lstat(dir+"/"+name);
     if (stat.isDirectory()) {
-      var list2 = await recursiveDir(dir+"/"+name);
+      var list2 = await recursiveDir(dir+"/"+name,prev+"/"+name);
       list = list.concat(list2);
     } else {
-      list.push(dir+"/"+name);
+      list.push(prev+"/"+name);
     }
   }
   return list;
@@ -902,9 +902,8 @@ app.get("/unzip", async function(req, res) {
   await fsp.unlink(path);
   var data = {};
   data.id = id;
-  data.dir = dir;
-  data.origin = req.protocol+"://"+req.get('host')+"/";
-  data.files = await recursiveDir(dir);
+  data.origin = req.protocol+"://"+req.get('host')+"/"+dir;
+  data.files = await recursiveDir(dir,"");
   console.log(data);
   if (req.query.test) {
     res.set("Content-Type", "application/json");
@@ -918,6 +917,6 @@ app.get("/unzip", async function(req, res) {
 });
 
 app.get("/cache/*", async function(req, res) {
-  res.sendFile('./cache/'+req.params[0]);
+  res.sendFile(__dirname+'/cache/'+req.params[0]);
 });
 
