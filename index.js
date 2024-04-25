@@ -898,12 +898,13 @@ app.get("/unzip", async function(req, res) {
   var dir = "cache/"+id;
   await fsp.writeFile(path,buf);
   await fsp.mkdir(dir);
-  //await unzip(path,dir);
+  await unzip(path,dir);
+  await fsp.unlink(path);
   var data = {};
   data.id = id;
   data.dir = dir;
   data.origin = req.protocol+"://"+req.get('host')+"/";
-  data.files = recursiveDir("cache"/*dir*/);
+  data.files = recursiveDir(dir);
   console.log(data);
   if (req.query.test) {
     res.set("Content-Type", "application/json");
