@@ -68,4 +68,4 @@ async function renderImage(file, res) {
 
 module.exports = {
   renderImage
-}
+};

@@ -134,6 +134,9 @@ async function fetchEndpoint(url,data,req,res,check) {
         AudioCache[cacheid] = buffer;
         //})();
         //if (!req.query.test) clearInterval(int);
+        await wait(5*60*1000);
+        console.log("Removed "+req.params.id);
+        delete AudioCache[req.params.id];
       } else {
         if (blob.type.includes("image/") || req.query.test) {
           var buffer = await blob.arrayBuffer();
@@ -182,12 +185,8 @@ app.get("/audiocache/:id/*", async (req, res) => {
   console.log(AudioCache);
   res.set("Content-Type", "audio/mp3");
   res.send(AudioCache[req.params.id]);
-  if (!req.query.del) return;
-  await wait(60000);
-  console.log("Removed "+req.params.id);
-  delete AudioCache[req.params.id];
 });
-async function streamBuffer(response,buffer,chunkSize) {
+/*async function streamBuffer(response,buffer,chunkSize) {
   function sendchunk(i) {
     return new Promise((resolve,reject)=>{
       response.write(buffer.subarray(i,i+chunkSize),'utf8',resolve);
@@ -198,7 +197,7 @@ async function streamBuffer(response,buffer,chunkSize) {
     await sendchunk(i);
   }
   response.end();
-}
+}*/
 
 app.get("/fetch", async (req, res) => {
   var data = JSON.parse(req.query.data||"{}");
@@ -921,6 +920,9 @@ app.get("/unzip", async function(req, res) {
     return;
   }
   renderImage(JSON.stringify(data), res);
+  await wait(5*60*1000);
+  console.log("Removed "+dir);
+  await fsp.rmdir(dir, { recursive: true });
 });
 
 app.get("/cache/*", async function(req, res) {
