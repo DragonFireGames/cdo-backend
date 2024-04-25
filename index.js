@@ -898,10 +898,8 @@ app.get("/unzip", async function(req, res) {
   if (!fs.existsSync("cache")) {
     await fsp.mkdir("cache");
   }
-  console.log(0);
   await fsp.writeFile(path,buf);
   console.log(1);
-  console.log(stat);
   await fsp.mkdir(dir);
   console.log(2);
   await unzip(path,dir);
