@@ -872,14 +872,11 @@ function unzip(path,dir) {
 }
 async function recursiveDir(dir) {
   var list = [];
-  console.log(dir);
   var files = await fsp.readdir(dir);
   for (var name of files) {
-    console.log(name);
     var stat = await fsp.lstat(dir+"/"+name);
-    console.log(stat.isDirectory());
     if (stat.isDirectory()) {
-      recursiveDir(dir+"/"+name);
+      await recursiveDir(dir+"/"+name);
     } else {
       list.push(dir+"/"+name);
     }
@@ -899,18 +896,14 @@ app.get("/unzip", async function(req, res) {
     await fsp.mkdir("cache");
   }
   await fsp.writeFile(path,buf);
-  console.log(1);
   await fsp.mkdir(dir);
-  console.log(2);
   await unzip(path,dir);
-  console.log(3);
   await fsp.unlink(path);
   var data = {};
   data.id = id;
   data.dir = dir;
   data.origin = req.protocol+"://"+req.get('host')+"/";
   data.files = await recursiveDir(dir);
-  console.log(4);
   console.log(data);
   if (req.query.test) {
     res.set("Content-Type", "application/json");
