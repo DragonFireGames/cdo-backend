@@ -876,7 +876,8 @@ async function recursiveDir(dir) {
   for (var name of files) {
     var stat = await fsp.lstat(dir+"/"+name);
     if (stat.isDirectory()) {
-      await recursiveDir(dir+"/"+name);
+      var list2 = await recursiveDir(dir+"/"+name);
+      list = list.concat(list2);
     } else {
       list.push(dir+"/"+name);
     }
