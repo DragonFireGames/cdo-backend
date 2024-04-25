@@ -874,7 +874,7 @@ function unzip(path,dir) {
 async function recursiveDir(dir) {
   var list = [];
   console.log(dir);
-  var files = fsp.readdir(dir);
+  var files = await fsp.readdir(dir);
   for (var name of files) {
     console.log(name);
     var stat = await fsp.lstat(dir+"/"+name);
@@ -912,4 +912,8 @@ app.get("/unzip", async function(req, res) {
     return;
   }
   renderImage(JSON.stringify(data), res);
+});
+
+app.get("/cache/*", async function(req, res) {
+  res.sendFile('./cache/'+req.params[0]);
 });
