@@ -895,13 +895,13 @@ app.get("/unzip", async function(req, res) {
   var id = Math.floor(Math.random()*1e12);
   var path = "cache/"+id+".7z";
   var dir = "cache/"+id;
-  await fsp.mkdir("cache");
-  console.log(path,dir);
+  var stat = await fsp.stat("cache");
+  if (!stat.isDirectory()) {
+    await fsp.mkdir("cache");
+  }
   console.log(0);
   await fsp.writeFile(path,buf);
   console.log(1);
-  var stat = await fsp.stat(path);
-  console.log(stat.isFile());
   console.log(stat);
   await fsp.mkdir(dir);
   console.log(2);
