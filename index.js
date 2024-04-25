@@ -895,8 +895,8 @@ app.get("/unzip", async function(req, res) {
   var id = Math.floor(Math.random()*1e12);
   var path = "cache/"+id+".7z";
   var dir = "cache/"+id;
-  var stat = await fsp.stat("cache");
-  if (!stat.isDirectory()) {
+  var exists = await fsp.exists("cache");
+  if (!exists) {
     await fsp.mkdir("cache");
   }
   console.log(0);
@@ -912,7 +912,7 @@ app.get("/unzip", async function(req, res) {
   data.id = id;
   data.dir = dir;
   data.origin = req.protocol+"://"+req.get('host')+"/";
-  data.files = recursiveDir(dir);
+  data.files = await recursiveDir(dir);
   console.log(4);
   console.log(data);
   if (req.query.test) {
