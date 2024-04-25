@@ -897,14 +897,21 @@ app.get("/unzip", async function(req, res) {
   var path = "cache/"+id+".7z";
   var dir = "cache/"+id;
   await fsp.writeFile(path,buf);
+  console.log(1);
+  var stat = await fsp.stat(path);
+  console.log(stat.isFile());
+  console.log(stat);
   await fsp.mkdir(dir);
+  console.log(2);
   await unzip(path,dir);
+  console.log(3);
   await fsp.unlink(path);
   var data = {};
   data.id = id;
   data.dir = dir;
   data.origin = req.protocol+"://"+req.get('host')+"/";
   data.files = recursiveDir(dir);
+  console.log(4);
   console.log(data);
   if (req.query.test) {
     res.set("Content-Type", "application/json");
@@ -917,3 +924,4 @@ app.get("/unzip", async function(req, res) {
 app.get("/cache/*", async function(req, res) {
   res.sendFile('./cache/'+req.params[0]);
 });
+
