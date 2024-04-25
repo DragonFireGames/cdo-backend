@@ -895,8 +895,7 @@ app.get("/unzip", async function(req, res) {
   var id = Math.floor(Math.random()*1e12);
   var path = "cache/"+id+".7z";
   var dir = "cache/"+id;
-  var exists = await fsp.exists("cache");
-  if (!exists) {
+  if (!fs.existsSync("cache")) {
     await fsp.mkdir("cache");
   }
   console.log(0);
