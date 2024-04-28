@@ -63,8 +63,10 @@ async function renderImage(file, res) {
   img.getBuffer(Jimp.MIME_PNG, (err, buffer) => {
     if (!res.headersSent) {
       res.set("Content-Type", "image/png");
+      res.send(buffer);
+      return;
     }
-    res.send(buffer);
+    res.end(buffer);
   });
 }
 
