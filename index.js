@@ -887,6 +887,10 @@ async function recursiveDir(dir,prev) {
 app.get("/unzip", async function(req, res) {
   var url = req.query.url;
   if (!url) return;
+  if (!req.query.test) {
+    res.set('Content-Type', 'image/png');
+    res.write('');
+  }
   var blob = await fetch(url).then(e=>e.blob());
   var buf = await blob.arrayBuffer();
   buf = Buffer.from(buf);
