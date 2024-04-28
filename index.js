@@ -884,9 +884,20 @@ async function recursiveDir(dir,prev) {
   }
   return list;
 }
+var ZipCache = {};
 app.get("/unzip", async function(req, res) {
   var url = req.query.url;
   if (!url) return;
+  if (ZipCache[url] == true) return;
+  if (ZipCache[url]) {
+    if (req.query.test) {
+      res.set("Content-Type", "application/json");
+      res.send(ZipCache[url]);
+      return;
+    }
+    renderImage(JSON.stringify(ZipCache[url]), res);
+  };
+  ZipCache[url] = true;
   if (!req.query.test) {
     res.set('Content-Type', 'image/png');
     res.write('');
@@ -915,8 +926,10 @@ app.get("/unzip", async function(req, res) {
     return;
   }
   renderImage(JSON.stringify(data), res);
+  ZipCache[url] = data;
   await wait(5*60*1000);
   console.log("Removed "+dir);
+  delete ZipCache[url];
   await fsp.rmdir(dir, { recursive: true });
 });
 
