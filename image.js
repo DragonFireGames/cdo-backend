@@ -61,7 +61,9 @@ async function renderImage(file, res) {
   var img = await epic_jimp(code);
   img = await Jimp.read(img);
   img.getBuffer(Jimp.MIME_PNG, (err, buffer) => {
-    res.set("Content-Type", "image/png");
+    if (!res.headersSent) {
+      res.set("Content-Type", "image/png");
+    }
     res.send(buffer);
   });
 }
