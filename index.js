@@ -937,3 +937,48 @@ app.get("/cache/*", async function(req, res) {
   res.sendFile(__dirname+'/cache/'+req.params[0]);
 });
 
+// Email
+const mailer = require('nodemailer');
+const transporter = mailer.createTransport({
+  host: "smtp-mail.outlook.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: "cdo-backend@outlook.com",
+    pass: "process.env.ADMIN_PASSWORD",
+  },
+});
+app.get("/email", async (req, res) => {
+  var data = req.query;
+  if (!data.to) return;
+  var attachments = [];
+  data.attachments = data.attachments || [];
+  for (var i = 0; i < data.attachments.length; i++) {
+    var a = data.attachments[i];
+    var data = await fetch(a.url);
+    var blob = await data.blob();
+    var buffer = await blob.arrayBuffer();
+    buffer = Buffer.from(buffer);
+    var name = a.name||path.basename(a[i].url);
+    attachments.push({
+      filename: name,
+      content: buffer
+    });
+  }
+  var mailOptions = {
+    from: "cdo-backend@outlook.com",
+    to: data.to,
+    subject: data.subject||"No Subject",
+    text: data.text||"",
+    attachments: attachments
+  };
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+      res.status(500).send("Error");
+    } else {
+      console.log('Email sent: ' + info.response);
+      res.status(200).send("Success");
+    }
+  });
+});

@@ -21,6 +21,7 @@
     "jimp": "^0.22.12",
     "jsmediatags": "^3.9.7",
     "mongodb": "^6.5.0",
+    "nodemailer": "^6.9.13",
     "request": "^2.88.2",
     "ytdl-core": "^4.11.5"
   }
