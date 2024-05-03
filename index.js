@@ -945,7 +945,7 @@ const transporter = mailer.createTransport({
   secure: false,
   auth: {
     user: "cdo-backend@outlook.com",
-    pass: "process.env.ADMIN_PASSWORD",
+    pass: process.env.ADMIN_PASSWORD,
   },
 });
 app.get("/email", async (req, res) => {
