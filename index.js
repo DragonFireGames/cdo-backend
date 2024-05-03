@@ -923,15 +923,15 @@ app.get("/unzip", async function(req, res) {
   data.id = id;
   data.origin = req.protocol+"://"+req.get('host')+"/"+dir;
   data.files = await recursiveDir(dir,"");
+  ZipCache[url] = data;
   console.log(data);
+  console.log("Unzipped");
   if (req.query.test) {
     res.set("Content-Type", "application/json");
     res.send(data);
     return;
   }
-  console.log("Unzipped");
   renderImage(JSON.stringify(data), res);
-  ZipCache[url] = data;
   await wait(5*60*1000);
   console.log("Removed "+dir);
   delete ZipCache[url];
