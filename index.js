@@ -937,18 +937,6 @@ app.get("/cache/*", async function(req, res) {
   res.sendFile(__dirname+'/cache/'+req.params[0]);
 });
 
-// Email
-const mailer = require('nodemailer');
-const transporter = mailer.createTransport({
-  host: "smtp-mail.outlook.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: "cdo-backend@outlook.com",
-    pass: process.env.ADMIN_PASSWORD,
-  },
-});
-
 transporter.sendMail({
   from: "cdo-backend@outlook.com",
   to: "minemaster02@icloud.com",
