@@ -952,7 +952,7 @@ app.get("/email", async (req, res) => {
   var data = req.query;
   if (!data.to) return;
   var attachments = [];
-  data.attachments = data.attachments || [];
+  data.attachments = JSON.parse(data.attachments || "[]");
   for (var i = 0; i < data.attachments.length; i++) {
     var a = data.attachments[i];
     var data = await fetch(a.url);
