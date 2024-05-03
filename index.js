@@ -937,18 +937,16 @@ app.get("/cache/*", async function(req, res) {
   res.sendFile(__dirname+'/cache/'+req.params[0]);
 });
 
-transporter.sendMail({
-  from: "cdo-backend@outlook.com",
-  to: "minemaster02@icloud.com",
-  subject: "No Subject",
-  text: "test",
-  attachments: ""
-}, function(error, info){
-  if (error) {
-    console.log(error);
-  } else {
-    console.log('Email sent: ' + info.response);
-  }
+// Email
+const mailer = require('nodemailer');
+const transporter = mailer.createTransport({
+  host: "smtp-mail.outlook.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: "cdo-backend@outlook.com",
+    pass: process.env.ADMIN_PASSWORD,
+  },
 });
 
 app.get("/email", async (req, res) => {
