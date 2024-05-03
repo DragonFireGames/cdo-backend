@@ -964,8 +964,8 @@ app.get("/email", async (req, res) => {
   console.log(data.attachments);
   for (var i = 0; i < data.attachments?.length; i++) {
     var a = data.attachments[i];
-    var data = await fetch(a.url);
-    var blob = await data.blob();
+    var pre = await fetch(a.url);
+    var blob = await pre.blob();
     var buffer = await blob.arrayBuffer();
     buffer = Buffer.from(buffer);
     var name = a.name||path.basename(a[i].url);
