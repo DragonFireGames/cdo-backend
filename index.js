@@ -948,6 +948,21 @@ const transporter = mailer.createTransport({
     pass: process.env.ADMIN_PASSWORD,
   },
 });
+
+transporter.sendMail({
+  from: "cdo-backend@outlook.com",
+  to: "minemaster02@icloud.com",
+  subject: "No Subject",
+  text: "test",
+  attachments: ""
+}, function(error, info){
+  if (error) {
+    console.log(error);
+  } else {
+    console.log('Email sent: ' + info.response);
+  }
+});
+
 app.get("/email", async (req, res) => {
   var data = req.query;
   if (!data.to) return;
