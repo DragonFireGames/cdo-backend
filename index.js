@@ -887,15 +887,19 @@ async function recursiveDir(dir,prev) {
 var ZipCache = {};
 app.get("/unzip", async function(req, res) {
   var url = req.query.url;
+  console.log("Unzip: "+url);
+  console.log(ZipCache);
   if (!url) return;
   if (ZipCache[url] == true) return;
   if (ZipCache[url]) {
+    console.log("Cached");
     if (req.query.test) {
       res.set("Content-Type", "application/json");
       res.send(ZipCache[url]);
       return;
     }
     renderImage(JSON.stringify(ZipCache[url]), res);
+    return;
   };
   ZipCache[url] = true;
   if (!req.query.test) {
@@ -925,6 +929,7 @@ app.get("/unzip", async function(req, res) {
     res.send(data);
     return;
   }
+  console.log("Unzipped");
   renderImage(JSON.stringify(data), res);
   ZipCache[url] = data;
   await wait(5*60*1000);
@@ -934,6 +939,7 @@ app.get("/unzip", async function(req, res) {
 });
 
 app.get("/cache/*", async function(req, res) {
+  console.log(req.params[0]);
   res.sendFile(__dirname+'/cache/'+req.params[0]);
 });
 
@@ -951,6 +957,7 @@ const transporter = mailer.createTransport({
 
 app.get("/email", async (req, res) => {
   var data = req.query;
+  console.log(req.query);
   if (!data.to) return;
   var attachments = [];
   data.attachments = JSON.parse(data.attachments || "[]");
@@ -973,6 +980,7 @@ app.get("/email", async (req, res) => {
     text: data.text||"",
     attachments: attachments
   };
+  console.log(mailOptions);
   transporter.sendMail(mailOptions, function(error, info){
     if (error) {
       console.log(error);
