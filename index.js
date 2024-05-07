@@ -488,7 +488,6 @@ function randomId(len, alphabet) {
 
 // FPROF
 var accountData = {};
-var publicAccData = {};
 var sessionCache = {};
 var authtokens = {};
 var admintokens = {};
@@ -498,23 +497,28 @@ function giveToken(name) {
   return {
     tok: tok,
     name: name,
-    data: publicAccData[name],
+    data: publicAcc(name),
   };
 }
 var profapi = createAPI("prof");
 profapi.ondbload = async () => {
   accountData = await profapi.get(0, {});
-  updatePublicAccData();
 };
-function updatePublicAccData() {
-  publicAccData = JSON.parse(JSON.stringify(accountData));
-  for (var i in publicAccData) {
-    delete publicAccData[i].credentials;
-  }
-}
 async function saveAccData() {
-  updatePublicAccData();
   return await profapi.save(0, accountData);
+}
+function updateAcc(acc,block,data,def) {
+  for (var i in data) {
+    if (typeof data[i] === 'object' &&
+        typeof acc[i] === 'object') {
+      updateAcc(acc[i],block[i]||{},data[i]);
+      continue;
+    }
+    if (block[i]) continue;
+    if (def && acc[i] !== undefined) continue;
+    acc[i] = data[i];
+    if (data[i] === null) delete acc[i];
+  }
 }
 profapi.on("signup", async (data) => {
   var name = data.name.replace(/[^\w\d_-]/g, "").toLowerCase();
@@ -537,14 +541,7 @@ profapi.on("signup", async (data) => {
     public: {},
   };
   var def = data.data;
-  for (var i in def) {
-    if (i == "public") continue;
-    accountData[name][i] = def[i];
-  }
-  if (def.public)
-    for (var i in def.public) {
-      accountData[name].public[i] = def.public[i];
-    }
+  updateAcc(accountData[name],{},def);
   saveAccData();
   sessionCache[uid] = name;
   //fs.writeFile('./sessions.json', JSON.stringify(sessionCache,1,2),'utf8',function(){});
@@ -561,16 +558,7 @@ profapi.on("signin", async (data) => {
   );
   if (!credvalid) throw "Login Failed: Invalid credentials";
   var def = data.data;
-  for (var i in def) {
-    if (i == "public") continue;
-    if (accountData[name][i]) continue;
-    accountData[name][i] = def[i];
-  }
-  if (def.public)
-    for (var i in def.public) {
-      if (accountData[name].public[i]) continue;
-      accountData[name].public[i] = def.public[i];
-    }
+  updateAcc(accountData[name],{},def,true);
   saveAccData();
   var uid = md5(data.uid);
   sessionCache[uid] = name;
@@ -594,7 +582,7 @@ profapi.on("referauth", async (data) => {
   return {
     tok: data.tok,
     name: name,
-    data: publicAccData[name],
+    data: publicAcc(name),
   };
 });
 profapi.on("signout", async (data) => {
@@ -624,19 +612,15 @@ profapi.on("update", async (data) => {
   var blocked = {
     name: 1,
     credentials: 1,
+    friends: 1,
+    requests: 1,
+    coins: 1,
+    joinedAt: 1,
   };
-  for (var i in update) {
-    if (blocked[i]) continue;
-    accountData[name][i] = update[i];
-    if (data[i] === null) delete accountData[name][i];
-  }
-  if (update.public) for (var i in update.public) {
-    accountData[name].public[i] = update.public[i];
-    if (update.public[i] === null) delete accountData[name].public[i];
-  }
+  updateAcc(accountData[name],blocked,update);
   saveAccData();
   console.log(accountData[name]);
-  return publicAccData[name];
+  return publicAcc(name);
 });
 profapi.on("update/public", async (data) => {
   var tok = data.tok;
@@ -645,13 +629,10 @@ profapi.on("update/public", async (data) => {
   if (!authtokens[tok]) return "Not authenticated";
   // Update
   var update = data.data;
-  for (var i in update) {
-    accountData[name].public[i] = update[i];
-    if (update[i] === null) delete accountData[name].public[i];
-  }
+  updateAcc(accountData[name].public,{},update);
   saveAccData();
   console.log(accountData[name]);
-  return publicAccData[name];
+  return publicAcc(name);
 });
 profapi.on("friend", async (data) => {
   // Check
@@ -713,14 +694,29 @@ profapi.on("delete", async (data) => {
   console.log(name+" deleted their account");
   return "Successfully deleted your account";
 });
+function makePublicAccountData(a) {
+  delete a.credentials;
+  return a;
+}
+function publicAcc(name) {
+  var a = JSON.parse(JSON.stringify(accountData[name]));
+  return makePublicAccountData(a);
+}
+function publicAccAll() {
+  var l = JSON.parse(JSON.stringify(accountData));
+  for (var i in l) {
+    l[i] = makePublicAccountData(l[i]);
+  }
+  return l;
+}
 profapi.on("get", async (name) => {
   // Check
-  var acc = publicAccData[name];
+  var acc = publicAcc(name);
   if (!acc) throw "Nonexistent or deleted user";
   return acc;
 });
 profapi.on("getall", async () => {
-  return publicAccData;
+  return publicAccAll();
 });
 const adminpswd = process.env.ADMIN_PASSWORD;
 profapi.on("admin/elevate", async (data) => {
