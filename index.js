@@ -960,21 +960,33 @@ app.get("/email", async (req, res) => {
   console.log(data.attachments);
   for (var i = 0; i < data.attachments?.length; i++) {
     var a = data.attachments[i];
-    var pre = await fetch(a.url);
-    var blob = await pre.blob();
-    var buffer = await blob.arrayBuffer();
-    buffer = Buffer.from(buffer);
-    var name = a.name||path.basename(a[i].url);
-    attachments.push({
-      filename: name,
-      content: buffer
-    });
+    var res = {};
+    res.cid = a.cid;
+    res.contentType = a.contentType;
+    res.raw = a.raw;
+    res.name = a.name;
+    if (a[i].url) {
+      if (!res.name) {
+        res.name = path.basename(a[i].url||"");
+      }
+      if (a.linkContent) {
+        res.path = a[i].url;
+      } else {
+        var pre = await fetch(a.url);
+        var blob = await pre.blob();
+        var buffer = await blob.arrayBuffer();
+        buffer = Buffer.from(buffer);
+        res.content = buffer;
+      }
+    }
+    attachments.push(res);
   }
   var mailOptions = {
     from: "cdo-backend@outlook.com",
     to: data.to,
     subject: data.subject||"No Subject",
     text: data.text||"",
+    html: data.html,
     attachments: attachments
   };
   console.log(mailOptions);
