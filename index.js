@@ -952,45 +952,25 @@ const transporter = mailer.createTransport({
 });
 
 app.get("/email", async (req, res) => {
-  var data = req.query;
+  var data = JSON.parse(req.query.data);
   console.log(req.query);
   if (!data.to) return;
-  var attachments = [];
-  data.attachments = JSON.parse(data.attachments || "[]");
   console.log(data.attachments);
   for (var i = 0; i < data.attachments?.length; i++) {
     var a = data.attachments[i];
-    var res = {};
-    res.cid = a.cid;
-    res.contentType = a.contentType;
-    res.raw = a.raw;
-    res.name = a.name;
-    if (a[i].url) {
-      if (!res.name) {
-        res.name = path.basename(a[i].url||"");
-      }
-      if (a.linkContent) {
-        res.path = a[i].url;
-      } else {
-        var pre = await fetch(a.url);
-        var blob = await pre.blob();
-        var buffer = await blob.arrayBuffer();
-        buffer = Buffer.from(buffer);
-        res.content = buffer;
-      }
+    if (a.downloadPathContent) {
+      var pre = await fetch(a.path);
+      var blob = await pre.blob();
+      var buffer = await blob.arrayBuffer();
+      buffer = Buffer.from(buffer);
+      res.content = buffer;
+      delete a.path;
     }
-    attachments.push(res);
+    if (!a.name && a.path) a.name = path.basename(a.path||"");
   }
-  var mailOptions = {
-    from: "cdo-backend@outlook.com",
-    to: data.to,
-    subject: data.subject||"No Subject",
-    text: data.text||"",
-    html: data.html,
-    attachments: attachments
-  };
-  console.log(mailOptions);
-  transporter.sendMail(mailOptions, function(error, info){
+  data.from = "cdo-backend@outlook.com";
+  console.log(data);
+  transporter.sendMail(data, function(error, info){
     if (error) {
       console.log(error);
       res.status(500).send("Error");
