@@ -958,15 +958,15 @@ app.get("/email", async (req, res) => {
   console.log(data.attachments);
   for (var i = 0; i < data.attachments?.length; i++) {
     var a = data.attachments[i];
+    if (!a.name && a.path) a.name = path.basename(a.path||"");
     if (a.downloadPathContent) {
       var pre = await fetch(a.path);
       var blob = await pre.blob();
       var buffer = await blob.arrayBuffer();
       buffer = Buffer.from(buffer);
-      res.content = buffer;
+      a.content = buffer;
       delete a.path;
     }
-    if (!a.name && a.path) a.name = path.basename(a.path||"");
     delete a.downloadPathContent;
   }
   data.from = "cdo-backend@outlook.com";
