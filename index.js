@@ -967,6 +967,7 @@ app.get("/email", async (req, res) => {
       delete a.path;
     }
     if (!a.name && a.path) a.name = path.basename(a.path||"");
+    delete a.downloadPathContent;
   }
   data.from = "cdo-backend@outlook.com";
   console.log(data);
